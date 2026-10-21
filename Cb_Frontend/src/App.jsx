@@ -8,30 +8,40 @@ function App() {
   
   const [query, setQuery] = useState('')
   const [messages, setMessages] = useState([])
+  const [isLoading,setIsLoading] = useState(false)
 
   useEffect(() => {
   console.log(messages)
   }, [messages])
 
   async function handleSubmit (event) {
-    event.preventDefault()
-    const message = query.trim()
+    try{
+        event.preventDefault()
+        const message = query.trim()
 
-    if (!message) return
+        if (!message) return
 
-    setMessages((currentMessages) => [...currentMessages, {
-    id: crypto.randomUUID(),
-    text: message,
-    role: "user",
-  }])
-    setQuery('')
-    const response = await sendQuery(message)
-    console.log("Server ka frontend me response: ",response.reply)
-    setMessages((currentMessages) => [...currentMessages, {
-    id: crypto.randomUUID(),
-    text: response.reply,
-    role: "agent",
-  }])
+        setMessages((currentMessages) => [...currentMessages, {
+        id: crypto.randomUUID(),
+        text: message,
+        role: "user",
+        }])
+        setIsLoading(true)
+        setQuery('')
+        const response = await sendQuery(message)
+        console.log("Server ka frontend me response: ",response.reply)
+        setMessages((currentMessages) => [...currentMessages, {
+        id: crypto.randomUUID(),
+        text: response.reply,
+        role: "agent",
+        }])
+      }
+    catch(err){
+      console.log("Error while getting response",err)
+    }
+    finally{
+      setIsLoading(false)
+    }
   }
 
 
@@ -40,7 +50,8 @@ function App() {
   return (
     <main className="chat">
       <Header messages={messages} />
-      <Section className="chat_messages" messages={messages}></Section>
+
+      <Section className="chat_messages" messages={messages} isLoading={isLoading}></Section>
 
       <form className="composer" onSubmit={handleSubmit}>
         <label className="composer__label" htmlFor="chat-query">
