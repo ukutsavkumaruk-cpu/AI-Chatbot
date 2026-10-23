@@ -4,6 +4,8 @@ const cors = require("cors");
 require("dotenv").config();
 const {get404} = require('./controllers/errors')
 const queryRouter = require('./routes/queryRouter')
+const mongoose = require('mongoose');
+const DB_URL = process.env.DB_URL;
 
 
 const app = express()
@@ -17,7 +19,9 @@ app.use('/api/chat',queryRouter)
 app.use(get404)
 
 const PORT = 3010;
-
+mongoose.connect(DB_URL).then(()=>{
+console.log("Connection to DateBase: Successful");
 server.listen(PORT,()=>{
   console.log(`Server is running at http://localhost:${PORT}`)
+})
 })

@@ -1,20 +1,53 @@
 const ai = require('../services/geminiClient')
+const Message = require('../models/message')
 exports.getAnswer = async (req,res,next)=>{
   try{
     const {message} = req.body;
+    
     if(!message || !message.trim()){
       return res.status(400).json({
         error:"Message is required",
       })
     }
-    console.time("Gemini API Time");
+    try{
+      const userMessage = new Message({
+      role:"user",
+      contents:message,
+      })
+      await userMessage.save();
+    }
+    catch(err){
+      console.log("Error occur during saving User message to DataBase",err);
+      res.status(500).json({
+        success:false,
+        errMessage:"Something went wrong, try again !"
+      })
+      next(err)
+    }
+    
     const response = await ai.models.generateContent({
       model:"gemini-3.5-flash-lite",
       contents:message,
     })
-     console.timeEnd("Gemini API Time");
+    try{
+      const agentMessage = new Message({
+      role:"agent",
+      contents: response.text,
+      })
+      await agentMessage.save();
+    }
+    catch(err){
+      console.log("Error occur during saving Agent message to DataBase",err);
+      res.status(500).json({
+        success:false,
+        errMessage:"Something went wrong, try again !"
+      })
+      next(err)
+    }
+     
     console.log("This is the response from Gemini: ",response.text)
-    res.json({
+    res.status(200).json({
+      success:true,
       reply:response.text,
     })
   }
@@ -22,7 +55,9 @@ exports.getAnswer = async (req,res,next)=>{
     console.error("Gemini API error:", error);
 
     res.status(500).json({
-      error: "Failed to generate AI response",
+      success:false,
+      errMessage: "Failed to generate AI response",
     });
+    next(err)
   }
 }

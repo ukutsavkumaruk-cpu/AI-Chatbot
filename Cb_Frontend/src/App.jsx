@@ -4,6 +4,7 @@ import Header from './components/Header'
 import Section from './components/Section'
 import { sendQuery } from './components/service'
 
+
 function App() {
   
   const [query, setQuery] = useState('')
@@ -26,10 +27,17 @@ function App() {
         text: message,
         role: "user",
         }])
+
         setIsLoading(true)
         setQuery('')
+
         const response = await sendQuery(message)
-        console.log("Server ka frontend me response: ",response.reply)
+        
+
+        if(!response.success){
+          throw new Error(response.errMessage)
+        }
+
         setMessages((currentMessages) => [...currentMessages, {
         id: crypto.randomUUID(),
         text: response.reply,
@@ -38,6 +46,8 @@ function App() {
       }
     catch(err){
       console.log("Error while getting response",err)
+      alert(err)
+      
     }
     finally{
       setIsLoading(false)
