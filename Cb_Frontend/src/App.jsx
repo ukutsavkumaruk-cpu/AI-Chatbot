@@ -10,12 +10,8 @@ import Home from './components/Home';
 function App({ conversations = [] }) {
 
   
-  const [messages, setMessages] = useState([])
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
-  useEffect(() => {
-  console.log(messages)
-  }, [messages])
 
   
   // function handleUserSignUp(){

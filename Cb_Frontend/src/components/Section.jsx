@@ -1,13 +1,16 @@
+import { useSelector } from 'react-redux';
 import Loader from './Loader';
 import OneMessage from './OneMessage';
 
-function Section({messages,isLoading,className = ''}){
+function Section({isLoading,className = ''}){
 
+  const messages = useSelector((state) => state.chat.messages);
+  console.log("Ye rahi redux se aayi messages: ", messages)
   return (
     <section className={className} aria-label="Chat messages">
       {messages.map((message) => (
         <div
-          key={message.id}
+          key={message._id}
           className={
             message.role === "user"
               ? "flex w-full justify-end py-2"

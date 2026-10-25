@@ -8,7 +8,7 @@ function OneMessage({message}){
             : "box-content max-w-[min(80%,560px)] [overflow-wrap:anywhere] whitespace-pre-wrap rounded-[18px_18px_18px_4px] border border-[var(--border)] bg-[#606962ae] px-[18px] py-[14px] text-[var(--text-h)]"
         }
       >
-              {message.text}
+              {message.contents}
       </p>
   </>
 }

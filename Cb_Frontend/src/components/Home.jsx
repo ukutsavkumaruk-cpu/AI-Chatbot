@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useState,useEffect  } from 'react'
 import { addMessage } from "../features/chat/chatSlice";
-import { sendQuery } from './service'
+import { getChat, sendQuery } from './service'
 import ChatHero from './ChatHero'
 import Section from './Section'
 
@@ -15,7 +15,19 @@ export default function Home(){
   const [isLoading,setIsLoading] = useState(false)
   const [query, setQuery] = useState('')
     
-  
+  useEffect(() => {
+    try{
+      async function fetchChat(){
+      const result = await getChat();
+      result.reply.map((el)=>{dispatch(addMessage(el))})
+    }
+   fetchChat()}
+    catch(error){
+      console.log("Got error in fetching chat",error)
+    }
+   
+    
+  }, [])
 
   async function handleSubmit (event) {
     try{

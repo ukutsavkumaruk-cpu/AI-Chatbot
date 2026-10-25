@@ -1,11 +1,11 @@
 const express = require('express');
-const { getAnswer } = require('../controllers/queryController');
+const { postChat , getChat} = require('../controllers/queryController');
 
 
 
 const queryRouter = express.Router();
 
-
-queryRouter.post("/",getAnswer)
+queryRouter.get("/",getChat)
+queryRouter.post("/",postChat)
 
 module.exports = queryRouter;

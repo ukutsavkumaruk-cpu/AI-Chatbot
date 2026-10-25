@@ -1,6 +1,7 @@
 const ai = require('../services/geminiClient')
-const Message = require('../models/message')
-exports.getAnswer = async (req,res,next)=>{
+const Message = require('../models/message');
+
+exports.postChat = async (req,res,next)=>{
   try{
     const {message} = req.body;
     
@@ -59,5 +60,20 @@ exports.getAnswer = async (req,res,next)=>{
       errMessage: "Failed to generate AI response",
     });
     next(err)
+  }
+}
+exports.getChat  = async (req,res,next)=>{
+  try{
+    const response = await Message.find();
+    res.status(200).json({
+      success:true,
+      reply:response
+    });
+  }
+  catch(error){
+    res.status(500).json({
+      success:false,
+      error:error
+    })
   }
 }

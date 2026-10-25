@@ -1,5 +1,11 @@
 {
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix Cb_Frontend\" \"npm start --prefix Cb_Backend\""
+  },
   "dependencies": {
     "mongoose": "^9.11.3"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
   }
 }
