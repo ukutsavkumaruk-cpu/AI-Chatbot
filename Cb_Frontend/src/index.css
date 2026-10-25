@@ -50,6 +50,24 @@ body {
   margin: 0;
 }
 
+.chat-scrollbar {
+  scrollbar-color: var(--accent-border) transparent;
+  scrollbar-width: thin;
+}
+
+.chat-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: var(--accent-border);
+}
+
 h1,
 h2 {
   font-family: var(--heading);

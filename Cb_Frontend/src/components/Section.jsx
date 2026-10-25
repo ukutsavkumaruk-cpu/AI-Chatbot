@@ -13,15 +13,15 @@ function Section({isLoading,className = ''}){
           key={message._id}
           className={
             message.role === "user"
-              ? "flex w-full justify-end py-2"
-              : "flex w-full justify-start py-2"
+              ? "flex w-full justify-end py-1.5"
+              : "flex w-full justify-start py-1.5"
           }
         >
           <OneMessage message={message} />
         </div>
       ))}
       {isLoading && (
-        <div className="flex w-full justify-start py-2" role="status" aria-label="Waiting for AI response">
+        <div className="flex w-full justify-start py-1.5" role="status" aria-label="Waiting for AI response">
           <Loader />
         </div>
       )}

@@ -10,7 +10,7 @@ function Sidebar({ conversations = [], isOpen = false, onClose }) {
         />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-[min(84vw,280px)] flex-col border-r border-[var(--border)] bg-[var(--code-bg)] p-3 transition-transform duration-200 md:static md:z-auto md:h-[100svh] md:w-[260px] md:shrink-0 md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-[min(84vw,280px)] flex-col border-r border-[var(--border)] bg-[var(--code-bg)] p-3 transition-transform duration-200 md:inset-y-0 md:left-0 md:z-20 md:h-svh md:w-[260px] md:shrink-0 md:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-label="Conversation sidebar"

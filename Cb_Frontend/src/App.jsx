@@ -30,15 +30,20 @@ function App({ conversations = [] }) {
       <Route path="/signUp" element={<SignupWindow/>} />
       <Route path="/login" element={<LoginWindow/>} />
     </Routes>
-    <div className="flex min-h-svh w-full bg-(--bg)">
+    <div className="flex h-svh w-full overflow-hidden bg-(--bg)">
       <Sidebar
         conversations={conversations}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
-      <Header onMenuClick={() => setIsSidebarOpen(true)}  />
-        <Home />
-      
+      <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col md:ml-[260px]">
+        <div className="sticky top-0 z-10 shrink-0">
+          <Header onMenuClick={() => setIsSidebarOpen(true)} />
+        </div>
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <Home />
+        </div>
+      </div>
     </div>
     </>
   )
