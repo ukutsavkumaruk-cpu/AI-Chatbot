@@ -1,4 +1,9 @@
+import { useNavigate } from "react-router"
+
 function LoginWindow() {
+
+const navigate = useNavigate();
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm">
       <section
@@ -15,7 +20,7 @@ function LoginWindow() {
             <button
               aria-label="Close login window"
               className="flex size-9 items-center justify-center rounded-full text-(--text) transition hover:bg-(--code-bg) hover:text-(--text-h)"
-              type="button"
+              type="button" onClick={()=>{navigate(-1)}}
             >
               <svg viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                 <path d="m18 6-12 12M6 6l12 12" strokeLinecap="round" />
