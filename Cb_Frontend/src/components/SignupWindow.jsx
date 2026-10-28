@@ -49,6 +49,8 @@ const navigate = useNavigate();
               name="name"
               placeholder="Your name"
               type="text"
+              required 
+              minLength={3}
             />
           </div>
 
@@ -63,6 +65,7 @@ const navigate = useNavigate();
               name="email"
               placeholder="you@example.com"
               type="email"
+              required
             />
           </div>
 
@@ -77,6 +80,8 @@ const navigate = useNavigate();
               name="password"
               placeholder="Create a password"
               type="password"
+              required
+              minLength={5}
             />
           </div>
 
@@ -90,7 +95,8 @@ const navigate = useNavigate();
               id="signup-confirm-password"
               name="confirmPassword"
               placeholder="Enter your password again"
-              type="password"
+              required
+
             />
           </div>
 

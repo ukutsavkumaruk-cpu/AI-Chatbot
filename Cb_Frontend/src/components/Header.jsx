@@ -25,20 +25,20 @@ function Header({ onMenuClick ,}) {
           <span className="flex size-7 items-center justify-center rounded-lg bg-[var(--accent)] text-xs font-bold text-white">
             C
           </span>
-          <span className="text-sm font-semibold tracking-tight text-[var(--text-h)]">Chatie</span>
+          <span className="text-base font-semibold tracking-tight text-[var(--text-h)]">Chatie</span>
         </a>
-        <span className="hidden text-[13px] font-medium text-[var(--text-h)] md:block">New chat</span>
+        <span className="hidden text-sm font-medium text-[var(--text-h)] md:block">New chat</span>
       </div>
 
       <nav className="flex items-center gap-1.5" aria-label="Account actions">
         <button
-          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-(--text-h) transition hover:bg-(--code-bg) sm:px-3"
+          className="rounded-lg px-2.5 py-1.5 text-sm font-semibold text-(--text-h) transition hover:bg-(--code-bg) sm:px-3"
           type="button"  onClick={getUserLogin}
         >
           Log in
         </button>
         <button
-          className="rounded-lg bg-(--accent) px-2.5 py-1.5 text-xs font-semibold text-white transition hover:opacity-90 sm:px-3"
+          className="rounded-lg bg-(--accent) px-2.5 py-1.5 text-sm font-semibold text-white transition hover:opacity-90 sm:px-3"
           type="button" onClick={getUserSignUp}
         >
           Sign up
