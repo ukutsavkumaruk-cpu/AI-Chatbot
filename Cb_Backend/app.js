@@ -5,6 +5,7 @@ require("dotenv").config();
 const {get404} = require('./controllers/errors')
 const queryRouter = require('./routes/queryRouter')
 const mongoose = require('mongoose');
+const authRouter = require('./routes/authRouter');
 const DB_URL = process.env.DB_URL;
 
 
@@ -15,6 +16,7 @@ const server = http.createServer(app);
 app.use(express.urlencoded())
 app.use(cors())
 app.use(express.json())
+app.use('/api/auth',authRouter)
 app.use('/api/chat',queryRouter)
 app.use(get404)
 

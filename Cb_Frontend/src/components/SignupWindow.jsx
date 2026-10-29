@@ -1,7 +1,32 @@
 import { useNavigate } from "react-router"
+import { postSignUp } from "./Services/authServices";
 
 
 function SignupWindow() {
+
+async function handleSignUp(e) {
+  e.preventDefault();
+
+  const formData = new FormData(e.target);
+
+  const name = formData.get("name");
+  const email = formData.get("email");
+  const password = formData.get("password");
+  const confirmPassword = formData.get("confirmPassword");
+
+  if (password !== confirmPassword) {
+    alert("Passwords do not match!");
+    return;
+  }
+
+  const userData = {
+    name,
+    email,
+    password
+  };
+
+  await postSignUp(userData);
+}
 
 const navigate = useNavigate();
  
@@ -37,7 +62,7 @@ const navigate = useNavigate();
           </p>
         </div>
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSignUp}>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-(--text-h)" htmlFor="signup-name">
               Full name
@@ -102,7 +127,7 @@ const navigate = useNavigate();
 
           <button
             className="w-full rounded-xl bg-(--accent) px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
-            type="button" 
+            type="submit" 
           >
             Create account
           </button>

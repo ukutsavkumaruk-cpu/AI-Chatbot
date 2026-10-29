@@ -1,4 +1,4 @@
-export const  postSignUpData = async(name,email,password) =>{
+export const  postSignUp = async({name,email,password}) =>{
   try{
     const response = await fetch("http://localhost:3010/api/auth",{
       method:"POST",
@@ -12,10 +12,11 @@ export const  postSignUpData = async(name,email,password) =>{
       })
     })
     const result = await response.json();
+    console.log(result)
     return result;
 
   }
   catch(error){
-    throw new Error(error)
+    throw new Error("Not fetched signUp",error)
   }
 }
