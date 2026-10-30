@@ -51,7 +51,7 @@ body {
 }
 
 .chat-scrollbar {
-  scrollbar-color: var(--accent-border) transparent;
+  scrollbar-color: #d1d5db transparent;
   scrollbar-width: thin;
 }
 
@@ -65,7 +65,7 @@ body {
 
 .chat-scrollbar::-webkit-scrollbar-thumb {
   border-radius: 9999px;
-  background: var(--accent-border);
+  background: #d1d5db;
 }
 
 h1,
