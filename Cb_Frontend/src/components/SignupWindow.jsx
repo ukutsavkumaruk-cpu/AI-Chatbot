@@ -3,9 +3,11 @@ import { postSignUp } from "./Services/authServices";
 
 
 function SignupWindow() {
+  const navigate = useNavigate();
 
 async function handleSignUp(e) {
-  e.preventDefault();
+  try{
+    e.preventDefault();
 
   const formData = new FormData(e.target);
 
@@ -25,10 +27,21 @@ async function handleSignUp(e) {
     password
   };
 
-  await postSignUp(userData);
+  const response = await postSignUp(userData);
+  if (response.isSignUp) {
+    navigate("/signUp", { replace: true });
+  }
+  }
+  catch(error){
+    console.log("Error wnile Logging IN;",error);
+    res.status(500).json({
+      errorMessage:error,
+      
+    })
+  }
 }
 
-const navigate = useNavigate();
+
  
   
   return (

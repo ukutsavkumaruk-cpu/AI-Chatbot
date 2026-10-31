@@ -1,8 +1,27 @@
 import { useNavigate } from "react-router"
+import { postLogin } from "./Services/authServices";
 
 function LoginWindow() {
 
 const navigate = useNavigate();
+
+async function handleLogin(e) {
+  e.preventDefault();
+
+  const formData = new FormData(e.target);
+
+  const email = formData.get("email");
+  const password = formData.get("password");
+
+  const userData = {
+    email,
+    password
+  };
+  const response = await postLogin(userData);
+  if(response.isLoggedIn){
+    navigate("/login", { replace: true });
+  }
+}
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm">
@@ -20,7 +39,7 @@ const navigate = useNavigate();
             <button
               aria-label="Close login window"
               className="flex size-9 items-center justify-center rounded-full text-(--text) transition hover:bg-(--code-bg) hover:text-(--text-h)"
-              type="button" onClick={()=>{navigate(-1)}}
+              type="button" onClick={() => navigate("/", { replace: true })}
             >
               <svg viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                 <path d="m18 6-12 12M6 6l12 12" strokeLinecap="round" />
@@ -66,7 +85,7 @@ const navigate = useNavigate();
 
           <button
             className="w-full rounded-xl bg-(--accent) px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
-            type="button"
+            type="submit" onClick={handleLogin}
           >
             Log in
           </button>

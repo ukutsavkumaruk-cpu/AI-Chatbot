@@ -41,14 +41,53 @@ exports.postSignUp = async (req,res,next) =>{
     })
     await userData.save()
     return res.status(201).json({
+      isSignUp:true,
       message:"User Successfully registered"
     })
  }
  catch(error){
   console.log("Error while User signUp");
   return res.status(500).json({
+      isSignup:false,
       message: "Internal server error"
     });
  }
 
+}
+exports.postLogIn = async(req,res,next)=>{
+  try{
+    const { email, password } = req.body;
+    const user = await user.findOne({ email });
+    if (!user) {
+    return res.status(401).json({
+      message: "Invalid credentials"
+    });
+    }
+    const isMatch = await bcrypt.compare(
+    password,
+    user.password
+  );
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Invalid credentials"
+      });
+    }
+    const token = jwt.sign(
+      {userId:user._id},
+      process.env.JWT_SECRET,{expiresIn : "15m"}
+    );
+
+    res.status(201).json({
+    isLoggedIn:true,
+    message: "Login successful",
+    token
+    });
+  }
+  catch(error){
+    console.log("Error while login : ", error)
+    res.status(500).json({
+    isSignup:false,
+    message: "Internal server error"
+    });
+  }
 }
