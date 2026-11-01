@@ -1,80 +1,88 @@
 import { useSelector, useDispatch } from "react-redux";
-import { useState,useEffect  } from 'react'
+import { useState, useEffect } from "react";
 import { addMessage } from "../features/chat/chatSlice";
-import { getChat, sendQuery } from './service'
-import ChatHero from './ChatHero'
-import Section from './Section'
+import { getChat, sendQuery } from "./service";
+import ChatHero from "./ChatHero";
+import Section from "./Section";
+import { login } from '../features/auth/userAuthSlice'
 
 
-
-
-export default function Home(){
-
-  const messages = useSelector((state)=> state.chat.messages)
+export default function Home() {
+  const messages = useSelector((state) => state.chat.messages);
   const dispatch = useDispatch();
-  const [isLoading,setIsLoading] = useState(false)
-  const [query, setQuery] = useState('')
-    
+  const [isLoading, setIsLoading] = useState(false);
+  const [query, setQuery] = useState("");
+
   useEffect(() => {
-    try{
-      async function fetchChat(){
-      const result = await getChat();
-      result.reply.map((el)=>{dispatch(addMessage(el))})
+    try {
+      const checkUser = async () => {
+        const response = await fetch("http://localhost:3010/api/auth/check", {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await response.json();
+        dispatch(login(data.user));
+      };
+      checkUser();
+
+      async function fetchChat() {
+        const result = await getChat();
+        result.reply.map((el) => {
+          dispatch(addMessage(el));
+        });
+      }
+      fetchChat();
+    } catch (error) {
+      console.log("Got error in fetching chat", error);
     }
-   fetchChat()}
-    catch(error){
-      console.log("Got error in fetching chat",error)
-    }
-  }, [dispatch])
+  }, [dispatch]);
 
-  async function handleSubmit (event) {
-    try{
-        event.preventDefault()
-        const message = query.trim()
+  async function handleSubmit(event) {
+    try {
+      event.preventDefault();
+      const message = query.trim();
 
-        if (!message) return
+      if (!message) return;
 
-        dispatch(addMessage({
+      dispatch(
+        addMessage({
           contents: message,
           role: "user",
-        }));
+        }),
+      );
 
-        setIsLoading(true)
-        setQuery('')
+      setIsLoading(true);
+      setQuery("");
 
-        const response = await sendQuery(message)
-        
+      const response = await sendQuery(message);
 
-        if(!response.success){
-          throw new Error(response.errMessage)
-        }
+      if (!response.success) {
+        throw new Error(response.errMessage);
+      }
 
-        dispatch(addMessage({
+      dispatch(
+        addMessage({
           contents: response.reply,
           role: "agent",
-        }));
-      }
-    catch(err){
-      console.log("Error while getting response",err)
-      alert(err)
-      
-    }
-    finally{
-      setIsLoading(false)
+        }),
+      );
+    } catch (err) {
+      console.log("Error while getting response", err);
+      alert(err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
-
-  return<>
-    <main className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
-        
-
+  return (
+    <>
+      <main className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
         <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col px-4 sm:px-6">
           {messages.length === 0 && <ChatHero />}
 
           <Section
             className={`chat-scrollbar min-h-0 w-full flex-1 overflow-y-auto py-3 ${
-              messages.length === 0 ? 'hidden' : 'flex flex-col gap-3'
+              messages.length === 0 ? "hidden" : "flex flex-col gap-3"
             }`}
             messages={messages}
             isLoading={isLoading}
@@ -106,8 +114,19 @@ export default function Home(){
                 aria-label="Send message"
                 disabled={!query.trim()}
               >
-                <svg viewBox="0 0 24 24" fill="none" className="size-4" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <path d="M12 19V5m0 0L6 11m6-6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="size-4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M12 19V5m0 0L6 11m6-6 6 6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </button>
             </div>
@@ -117,5 +136,6 @@ export default function Home(){
           </p>
         </div>
       </main>
-  </>
+    </>
+  );
 }

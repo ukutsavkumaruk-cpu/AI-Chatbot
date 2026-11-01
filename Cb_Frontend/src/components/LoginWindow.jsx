@@ -1,9 +1,45 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router"
 import { postLogin } from "./Services/authServices";
+import { FaCheck } from "react-icons/fa";
+import { useDispatch } from "react-redux";
+import { login } from '../features/auth/userAuthSlice'
+
+function LoginSuccessPopup() {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
+      <section
+        aria-live="polite"
+        className="w-full max-w-sm rounded-3xl border border-(--border) bg-(--bg) p-8 text-center shadow-2xl"
+        role="status"
+      >
+        <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-emerald-500/10">
+          <FaCheck className="text-2xl text-emerald-600 dark:text-emerald-400" />
+        </div>
+        <h2 className="mb-2 text-2xl font-semibold text-(--text-h)">
+          Login successful!
+        </h2>
+        <p className="text-sm text-(--text)">Welcome back to Chatie.</p>
+      </section>
+    </div>
+  );
+}
 
 function LoginWindow() {
 
+const dispatch = useDispatch();
 const navigate = useNavigate();
+const [showSuccess, setShowSuccess] = useState(false);
+
+useEffect(() => {
+  if (!showSuccess) return;
+
+  const timeoutId = setTimeout(() => {
+    navigate("/", { replace: true });
+  }, 1000);
+
+  return () => clearTimeout(timeoutId);
+}, [showSuccess, navigate]);
 
 async function handleLogin(e) {
   e.preventDefault();
@@ -17,13 +53,18 @@ async function handleLogin(e) {
     email,
     password
   };
+
   const response = await postLogin(userData);
+
   if(response.isLoggedIn){
-    navigate("/login", { replace: true });
+    setShowSuccess(true);
+    dispatch(login());
   }
 }
 
   return (
+    <>
+    {showSuccess && <LoginSuccessPopup />}
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm">
       <section
         aria-labelledby="login-title"
@@ -39,7 +80,7 @@ async function handleLogin(e) {
             <button
               aria-label="Close login window"
               className="flex size-9 items-center justify-center rounded-full text-(--text) transition hover:bg-(--code-bg) hover:text-(--text-h)"
-              type="button" onClick={() => navigate("/", { replace: true })}
+              type="button" 
             >
               <svg viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                 <path d="m18 6-12 12M6 6l12 12" strokeLinecap="round" />
@@ -54,7 +95,7 @@ async function handleLogin(e) {
           </p>
         </div>
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleLogin}>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-(--text-h)" htmlFor="login-email">
               Email address
@@ -85,7 +126,7 @@ async function handleLogin(e) {
 
           <button
             className="w-full rounded-xl bg-(--accent) px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
-            type="submit" onClick={handleLogin}
+            type="submit" 
           >
             Log in
           </button>
@@ -96,6 +137,7 @@ async function handleLogin(e) {
         </p>
       </section>
     </div>
+    </>
   )
 }
 

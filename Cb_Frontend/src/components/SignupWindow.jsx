@@ -1,8 +1,11 @@
 import { useNavigate } from "react-router"
 import { postSignUp } from "./Services/authServices";
+import { useState } from "react";
+import { FaCheck } from "react-icons/fa";
 
 
 function SignupWindow() {
+  const [signUp, setSignUp] = useState(false);
   const navigate = useNavigate();
 
 async function handleSignUp(e) {
@@ -29,15 +32,12 @@ async function handleSignUp(e) {
 
   const response = await postSignUp(userData);
   if (response.isSignUp) {
-    navigate("/signUp", { replace: true });
+    setSignUp(true);
   }
   }
   catch(error){
-    console.log("Error wnile Logging IN;",error);
-    res.status(500).json({
-      errorMessage:error,
-      
-    })
+    console.error("Error while signing up:", error);
+    alert("Signup failed. Please try again.");
   }
 }
 
@@ -45,6 +45,46 @@ async function handleSignUp(e) {
  
   
   return (
+    signUp ? (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm">
+        <section
+          aria-labelledby="signup-success-title"
+          aria-modal="true"
+          className="relative w-full max-w-md overflow-hidden rounded-3xl border border-(--border) bg-(--bg) p-7 text-center shadow-2xl sm:p-9"
+          role="dialog"
+        >
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-(--accent-bg) to-transparent" />
+
+          <div className="relative">
+            <div className="mx-auto mb-5 flex size-[76px] items-center justify-center rounded-full bg-emerald-500/10 ring-8 ring-emerald-500/5">
+              <FaCheck className="text-3xl text-emerald-600 dark:text-emerald-400" />
+            </div>
+
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-(--accent)">
+              Account ready
+            </p>
+            <h2 id="signup-success-title" className="mb-3 text-2xl font-semibold tracking-tight text-(--text-h) sm:text-3xl">
+              Signup successful!
+            </h2>
+
+            <p className="mx-auto mb-7 max-w-xs text-sm leading-6 text-(--text)">
+              Your account has been created. You’re all set to sign in and start chatting.
+            </p>
+
+            <button
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--accent) px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-(--accent-bg) transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
+              onClick={() => navigate("/login", { replace: true })}
+              type="button"
+            >
+              Continue to login
+              <svg viewBox="0 0 24 24" fill="none" className="size-4 transition-transform group-hover:translate-x-0.5" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M5 12h14m-6-6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </section>
+      </div>
+    ) : (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm">
       <section
         aria-labelledby="signup-title"
@@ -151,6 +191,7 @@ async function handleSignUp(e) {
         </p>
       </section>
     </div>
+    )
   )
 }
 

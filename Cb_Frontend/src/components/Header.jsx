@@ -1,7 +1,19 @@
+import { useSelector,useDispatch } from "react-redux";
 import { useNavigate } from "react-router"
+import { logout } from '../features/auth/userAuthSlice'
+
 
 function Header({ onMenuClick ,}) {
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const isLoggedIn = useSelector(
+    (state) => state.user.isLoggedIn 
+  )
+  function handleLogout(){
+    dispatch(logout());
+  }
   function getUserSignUp(){
     navigate('/signUp')
   }
@@ -31,18 +43,28 @@ function Header({ onMenuClick ,}) {
       </div>
 
       <nav className="flex items-center gap-1.5" aria-label="Account actions">
+        {isLoggedIn ? 
+        <button
+          className="rounded-lg px-2.5 py-1.5 text-sm font-semibold text-(--text-h) transition hover:bg-(--code-bg) sm:px-3"
+          type="button" onClick={handleLogout}
+        >
+          Log out
+        </button> :
         <button
           className="rounded-lg px-2.5 py-1.5 text-sm font-semibold text-(--text-h) transition hover:bg-(--code-bg) sm:px-3"
           type="button"  onClick={getUserLogin}
         >
           Log in
         </button>
+
+        }
+        {isLoggedIn ? '' :
         <button
           className="rounded-lg bg-(--accent) px-2.5 py-1.5 text-sm font-semibold text-white transition hover:opacity-90 sm:px-3"
           type="button" onClick={getUserSignUp}
         >
           Sign up
-        </button>
+        </button> }
       </nav>
     </header>
   )

@@ -1,5 +1,6 @@
 const user = require('../models/user');
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 exports.postSignUp = async (req,res,next) =>{
  try{
@@ -57,15 +58,15 @@ exports.postSignUp = async (req,res,next) =>{
 exports.postLogIn = async(req,res,next)=>{
   try{
     const { email, password } = req.body;
-    const user = await user.findOne({ email });
-    if (!user) {
+    const User = await user.findOne({ email });
+    if (!User) {
     return res.status(401).json({
       message: "Invalid credentials"
     });
     }
     const isMatch = await bcrypt.compare(
     password,
-    user.password
+    User.password
   );
     if (!isMatch) {
       return res.status(401).json({
@@ -73,14 +74,20 @@ exports.postLogIn = async(req,res,next)=>{
       });
     }
     const token = jwt.sign(
-      {userId:user._id},
+      {userId:User._id},
       process.env.JWT_SECRET,{expiresIn : "15m"}
     );
+
+    res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 15 * 60 * 1000
+  });
 
     res.status(201).json({
     isLoggedIn:true,
     message: "Login successful",
-    token
     });
   }
   catch(error){
@@ -88,6 +95,38 @@ exports.postLogIn = async(req,res,next)=>{
     res.status(500).json({
     isSignup:false,
     message: "Internal server error"
+    });
+  }
+}
+exports.checkAuth  = async(req,res,next)=>{
+  try{
+    const token = req.cookies.token;
+    
+    if (!token) {
+    return res.status(401).json({
+      isLoggedIn: false,
+      message: "Not authenticated"
+    });
+    }
+    const decoded = jwt.verify(token,process.env.JWT_SECRET)
+    const User = await user.findById(decoded.userId).select("-password");
+    
+    if (!User) {
+      return res.status(401).json({
+        isLoggedIn: false,
+        message: "User not found"
+      });
+    }
+    return res.status(200).json({
+      isLoggedIn: true,
+      User
+    });
+  }
+  catch(error){
+    console.log("Error while login : ", error)
+    return res.status(401).json({
+      isLoggedIn: false,
+      message: "Invalid or expired token"
     });
   }
 }

@@ -23,6 +23,7 @@ export const  postLogin = async({email,password}) =>{
   try{
     const response = await fetch("http://localhost:3010/api/auth/login",{
       method:"POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json"
       },
