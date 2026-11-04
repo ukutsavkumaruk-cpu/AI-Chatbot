@@ -56,6 +56,8 @@ async function handleLogin(e) {
 
   const response = await postLogin(userData);
 
+  console.log("This is loggedIn user :", response)
+
   if(response.isLoggedIn){
     setShowSuccess(true);
     dispatch(login());

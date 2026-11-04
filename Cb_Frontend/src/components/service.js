@@ -1,12 +1,14 @@
 
-export const sendQuery = async(message) =>{
+export const sendQuery = async(message,conversationId) =>{
   try{const response = await fetch("http://localhost:3010/api/chat",{
     method:"POST",
+    credentials: "include",
     headers:{
       "content-Type": "application/json"
     },
     body: JSON.stringify({
-      message:message
+      message:message,
+      conversationId:conversationId
     })
   })
   const result = await response.json()

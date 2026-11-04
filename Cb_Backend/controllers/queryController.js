@@ -1,20 +1,72 @@
 const ai = require('../services/geminiClient')
 const Message = require('../models/message');
+const Conversation = require('../models/conversation');
+const mongoose = require('mongoose')
+
+
 
 exports.postChat = async (req,res,next)=>{
   try{
-    const {message} = req.body;
+    const {message,conversationId} = req.body;
     
+    
+    
+    // 1. Validate message
     if(!message || !message.trim()){
       return res.status(400).json({
         error:"Message is required",
       })
     }
+     
+    // 2. Verify JWT
+    const token = req.cookies.token;
+   
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // 3. Find existing conversation or create new one
+    let conversation;
+
+    if (conversationId) {
+        if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+            return res.status(400).json({
+              success: false,
+              error: "Invalid conversation ID",
+            });
+          }
+
+        conversation = await Conversation.findOne({
+          _id: conversationId,
+          userId: decoded.userId,
+        });
+
+        if (!conversation) {
+            return res.status(404).json({
+              success: false,
+              error: "Conversation not found",
+            });
+          }
+        }
+    else {
+        conversation = await Conversation.create({
+          userId: decoded.userId,
+          title: message.trim().slice(0, 100),
+        });
+    }
+
+    // 4. Save user message
     try{
-      const userMessage = new Message({
-      role:"user",
-      contents:message,
-      })
+      const userMessage = await Message.create({
+      conversationId: conversation._id,
+      role: "user",
+      contents: message.trim(),
+      });
       await userMessage.save();
     }
     catch(err){
@@ -30,8 +82,11 @@ exports.postChat = async (req,res,next)=>{
       model:"gemini-3.5-flash-lite",
       contents:message,
     })
+
+    // 6. Save AI response
     try{
       const agentMessage = new Message({
+      conversationId:conversationId ? conversationId : conversation._id,
       role:"agent",
       contents: response.text,
       })
@@ -47,6 +102,8 @@ exports.postChat = async (req,res,next)=>{
     }
      
     console.log("This is the response from Gemini: ",response.text)
+
+    // 7. Send response to frontend
     res.status(200).json({
       success:true,
       reply:response.text,

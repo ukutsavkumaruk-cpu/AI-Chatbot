@@ -12,6 +12,7 @@ export default function Home() {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState("");
+  const [conversationId,setConversationId] = useState(null)
 
   useEffect(() => {
     try {
@@ -21,7 +22,7 @@ export default function Home() {
           credentials: "include",
         });
         const data = await response.json();
-        dispatch(login(data.user));
+        dispatch(login(data.User));
       };
       checkUser();
 
@@ -54,7 +55,7 @@ export default function Home() {
       setIsLoading(true);
       setQuery("");
 
-      const response = await sendQuery(message);
+      const response = await sendQuery(message,conversationId);
 
       if (!response.success) {
         throw new Error(response.errMessage);

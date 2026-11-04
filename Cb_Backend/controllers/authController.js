@@ -119,7 +119,7 @@ exports.checkAuth  = async(req,res,next)=>{
     }
     return res.status(200).json({
       isLoggedIn: true,
-      User
+      User:User
     });
   }
   catch(error){
