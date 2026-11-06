@@ -12,7 +12,7 @@ export default function Home() {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState("");
-  const [conversationId,setConversationId] = useState(null)
+  const [conversationId, setConversationId] = useState(() => localStorage.getItem("conversationId"));
 
   useEffect(() => {
     try {
@@ -60,7 +60,11 @@ export default function Home() {
       if (!response.success) {
         throw new Error(response.errMessage);
       }
-
+      setConversationId(response.conversationId)
+      localStorage.setItem(
+      "conversationId",
+      response.conversationId
+      );
       dispatch(
         addMessage({
           contents: response.reply,

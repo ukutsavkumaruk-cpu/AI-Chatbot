@@ -7,7 +7,7 @@ import { login } from '../features/auth/userAuthSlice'
 
 function LoginSuccessPopup() {
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
       <section
         aria-live="polite"
         className="w-full max-w-sm rounded-3xl border border-(--border) bg-(--bg) p-8 text-center shadow-2xl"

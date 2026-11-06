@@ -2,6 +2,7 @@ const ai = require('../services/geminiClient')
 const Message = require('../models/message');
 const Conversation = require('../models/conversation');
 const mongoose = require('mongoose')
+const jwt = require('jsonwebtoken');
 
 
 
@@ -107,6 +108,7 @@ exports.postChat = async (req,res,next)=>{
     res.status(200).json({
       success:true,
       reply:response.text,
+      conversationId: conversation._id
     })
   }
    catch (error) {
@@ -115,6 +117,7 @@ exports.postChat = async (req,res,next)=>{
     res.status(500).json({
       success:false,
       errMessage: "Failed to generate AI response",
+      
     });
     next(err)
   }
