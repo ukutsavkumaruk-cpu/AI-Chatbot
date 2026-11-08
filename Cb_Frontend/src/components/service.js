@@ -36,4 +36,16 @@ catch(err){
   console.log("Error while fetching the chat")
   throw err;
 }}
-
+export const getConversations = async () =>{
+  try{
+    const response = await fetch("http://localhost:3010/api/conversations",{
+      method:"GET",
+      credentials: "include",
+    })
+    const conversations = await response.json() 
+    return conversations;
+  }
+  catch(error){
+    console.log("Error occur while getting conversations in frontend :",error);
+  }
+}

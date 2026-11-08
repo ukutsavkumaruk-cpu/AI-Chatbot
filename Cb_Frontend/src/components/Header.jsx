@@ -1,6 +1,8 @@
 import { useSelector,useDispatch } from "react-redux";
 import { useNavigate } from "react-router"
 import { logout } from '../features/auth/userAuthSlice'
+import {postLogout} from './Services/authServices'
+import {clearCurrentChat,setConversations} from '../features/chat/chatSlice'
 
 
 function Header({ onMenuClick ,}) {
@@ -11,8 +13,16 @@ function Header({ onMenuClick ,}) {
   const isLoggedIn = useSelector(
     (state) => state.user.isLoggedIn 
   )
-  function handleLogout(){
+  async function handleLogout(){
+    const islogout = await postLogout()
+    if(islogout){
+
+    dispatch(clearCurrentChat());
+    dispatch(setConversations([]));
+    localStorage.removeItem("conversationId");
     dispatch(logout());
+    }
+
   }
   function getUserSignUp(){
     navigate('/signUp')

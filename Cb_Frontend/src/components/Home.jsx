@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
-import { addMessage } from "../features/chat/chatSlice";
-import { getChat, sendQuery } from "./service";
+import { addMessage,setConversationId,setConversations} from "../features/chat/chatSlice";
+import { getChat, sendQuery,getConversations } from "./service";
 import ChatHero from "./ChatHero";
 import Section from "./Section";
 import { login } from '../features/auth/userAuthSlice'
@@ -12,25 +12,35 @@ export default function Home() {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState("");
-  const [conversationId, setConversationId] = useState(() => localStorage.getItem("conversationId"));
+  const conversationId = useSelector((state) => state.chat.conversationId)
+  
 
   useEffect(() => {
     try {
       const checkUser = async () => {
-        const response = await fetch("http://localhost:3010/api/auth/check", {
+        const response = await fetch("http://localhost:3010/api/auth/check",{
           method: "GET",
           credentials: "include",
         });
         const data = await response.json();
-        dispatch(login(data.User));
+        console.log(data)
+        if(data.isLoggedIn){
+          
+          const Conversations = await getConversations();
+          dispatch(login(data.User));
+          console.log(Conversations)
+          dispatch(setConversations(Conversations.conversations));
+        }
       };
       checkUser();
 
       async function fetchChat() {
-        const result = await getChat();
-        result.reply.map((el) => {
-          dispatch(addMessage(el));
-        });
+        if(conversationId){
+            const result = await getChat();
+            result.reply.map((el) => {
+            dispatch(addMessage(el));
+          });
+        }
       }
       fetchChat();
     } catch (error) {
@@ -54,13 +64,15 @@ export default function Home() {
 
       setIsLoading(true);
       setQuery("");
-
+      
       const response = await sendQuery(message,conversationId);
 
       if (!response.success) {
         throw new Error(response.errMessage);
       }
-      setConversationId(response.conversationId)
+
+      dispatch(setConversationId(response.conversationId))
+
       localStorage.setItem(
       "conversationId",
       response.conversationId

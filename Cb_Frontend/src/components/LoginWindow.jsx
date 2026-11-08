@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router"
 import { postLogin } from "./Services/authServices";
 import { FaCheck } from "react-icons/fa";
-import { useDispatch } from "react-redux";
+import { useDispatch,useSelector } from "react-redux";
 import { login } from '../features/auth/userAuthSlice'
+import {getConversations} from './service'
+import {setConversations} from '../features/chat/chatSlice'
 
 function LoginSuccessPopup() {
   return (
@@ -30,6 +32,7 @@ function LoginWindow() {
 const dispatch = useDispatch();
 const navigate = useNavigate();
 const [showSuccess, setShowSuccess] = useState(false);
+// const conversations = useSelector((state) => state.chat.conversations)
 
 useEffect(() => {
   if (!showSuccess) return;
@@ -42,7 +45,8 @@ useEffect(() => {
 }, [showSuccess, navigate]);
 
 async function handleLogin(e) {
-  e.preventDefault();
+  try{
+    e.preventDefault();
 
   const formData = new FormData(e.target);
 
@@ -56,11 +60,25 @@ async function handleLogin(e) {
 
   const response = await postLogin(userData);
 
-  console.log("This is loggedIn user :", response)
+    if (!response.isLoggedIn) {
+    return;
+  } 
 
-  if(response.isLoggedIn){
-    setShowSuccess(true);
+  try{
+    if(response.isLoggedIn){
+    const Conversations = await getConversations();
+    console.log(Conversations)
+    dispatch(setConversations(Conversations.conversations));
+  }
+  }
+  catch(error){
+    console.log("Can not fetch conversations")
+  }
     dispatch(login());
+    setShowSuccess(true);
+  }
+  catch(error){
+    console.log("Error occured in Login")
   }
 }
 
@@ -143,4 +161,4 @@ async function handleLogin(e) {
   )
 }
 
-export default LoginWindow
+export default LoginWindow;

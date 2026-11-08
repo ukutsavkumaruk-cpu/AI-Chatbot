@@ -9,6 +9,8 @@ Sol: I changed the  schema for implementing multi user.
 It allowed only one document to have a particular conversationId.
 But in our chatbot, multiple messages (both user and agent messages) must share the same conversationId.
 So, MongoDB rejected the second message and threw a duplicate key error (E11000).
+
+solution
 We fixed it by removing the unique index.
 
 2. We were maintaining conversationId using React's useState.

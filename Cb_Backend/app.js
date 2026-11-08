@@ -7,6 +7,7 @@ const {get404} = require('./controllers/errors')
 const queryRouter = require('./routes/queryRouter')
 const mongoose = require('mongoose');
 const authRouter = require('./routes/authRouter');
+const ConversationsRouter = require('./routes/conversationRouter');
 const DB_URL = process.env.DB_URL;
 
 
@@ -21,6 +22,8 @@ app.use(cors({
   credentials: true
 }))
 app.use(express.json())
+//baar baar check auth wala middleware yehan rakho
+app.use('/api/conversations',ConversationsRouter)
 app.use('/api/auth',authRouter)
 app.use('/api/chat',queryRouter)
 app.use(get404)

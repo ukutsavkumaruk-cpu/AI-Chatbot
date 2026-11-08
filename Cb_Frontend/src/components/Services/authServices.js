@@ -40,3 +40,18 @@ export const  postLogin = async({email,password}) =>{
     throw new Error("Error while Login : ",error)
   }
 }
+export const postLogout = async() =>{
+  try{
+    const response = await fetch("http://localhost:3010/api/auth/logout",{
+      method: "POST",
+      credentials: "include",
+    })
+    console.log(response)
+    if(response){
+      return  response;
+    }
+  }
+  catch(error){
+    console.log("Error while logging out.")
+  }
+}

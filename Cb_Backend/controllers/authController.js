@@ -2,6 +2,25 @@ const user = require('../models/user');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+exports.postLogout = async(req,res,next) =>{
+  try{
+    res.clearCookie("token",{
+      httpOnly:true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    })
+    res.status(200).json({
+    success: true,
+    message: "Logout successful"
+  });
+  }
+  catch(error){
+    res.status(500).json({
+    success: false,
+    message: "Logout unsuccessful"
+  });
+  }
+}
 exports.postSignUp = async (req,res,next) =>{
  try{
    const {name,email,password} = req.body;
@@ -75,7 +94,7 @@ exports.postLogIn = async(req,res,next)=>{
     }
     const token = jwt.sign(
       {userId:User._id},
-      process.env.JWT_SECRET,{expiresIn : "15m"}
+      process.env.JWT_SECRET,{expiresIn : "30m"}
     );
 
     res.cookie("token", token, {
@@ -119,6 +138,7 @@ exports.checkAuth  = async(req,res,next)=>{
     }
     return res.status(200).json({
       isLoggedIn: true,
+      message: "User found",
       User:User
     });
   }
