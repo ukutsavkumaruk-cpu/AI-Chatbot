@@ -18,3 +18,5 @@ When the component re-mounts (for example, after a page refresh), the state gets
 
 Solution
 We used localStorage to persist the conversationId across page refreshes.
+
+3. user can't continue previous conversations.
