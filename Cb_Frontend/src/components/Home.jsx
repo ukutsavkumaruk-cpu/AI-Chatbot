@@ -68,7 +68,7 @@ export default function Home() {
       const response = await sendQuery(message,conversationId);
 
       if (!response.success) {
-        throw new Error(response.errMessage);
+        throw new Error(response.error);
       }
 
       dispatch(setConversationId(response.conversationId))

@@ -6,7 +6,7 @@ function Loader(){
     <ThreeDots visible={true}
         height="29"
         width="30"
-        color="#4fa94d"
+        color="var(--accent)"
         radius="9"
         ariaLabel="three-dots-loading"></ThreeDots>
   </>

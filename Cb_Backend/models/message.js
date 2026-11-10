@@ -7,8 +7,8 @@ const messageSchema = new mongoose.Schema({
     ref: 'Conversation',
   },
   role:String,
-  contents:String,
-  createdAt:Date
-  
-})
+  contents:String, 
+}, {
+  timestamps: true,
+ })
 module.exports = mongoose.model("Message",messageSchema)

@@ -1,5 +1,6 @@
 import { useSelector,useDispatch } from "react-redux";
-import {clearCurrentChat} from '../features/chat/chatSlice'
+import {clearCurrentChat,setMessages,setConversationId} from '../features/chat/chatSlice'
+import {getOneConversation} from './service'
 
 function Sidebar({ isOpen = false, onClose }) {
   const conversations = useSelector((state) => state.chat.conversations)
@@ -9,6 +10,21 @@ function Sidebar({ isOpen = false, onClose }) {
   async function handleNewChat(){
     dispatch(clearCurrentChat())
     localStorage.removeItem("conversationId");
+  }
+  async function handleConversation(event){
+    console.log("Receiveed fron onecclick: ",event.currentTarget.id)
+    const request_Conv_Id =  event.currentTarget.id;
+    const result = await getOneConversation(request_Conv_Id);
+    if(result.success){
+      localStorage.removeItem("conversationId");
+      localStorage.setItem("conversationId",request_Conv_Id);
+      dispatch(clearCurrentChat())
+      dispatch(setConversationId(request_Conv_Id))
+      dispatch(setMessages(result.Message))
+    }
+    else{
+      console.log("Coversation Not found in the db")
+    }
   }
 
   return (
@@ -27,7 +43,7 @@ function Sidebar({ isOpen = false, onClose }) {
         }`}
         aria-label="Conversation sidebar"
       >
-        <div className="mb-5 flex items-center justify-between px-1">
+        <div className="mb-6 flex items-center justify-between px-1">
           <a className="flex items-center gap-2.5 text-inherit no-underline" href="#" aria-label="Chatie home">
             <span className="flex size-8 items-center justify-center rounded-lg bg-(--accent) text-sm font-bold text-white">
               C
@@ -47,7 +63,7 @@ function Sidebar({ isOpen = false, onClose }) {
         </div>
 
         <button
-          className="mb-5 flex w-full items-center gap-3 rounded-xl border border-(--border) bg-(--bg) px-3 py-2.5 text-left text-sm font-medium text-(--text-h) transition hover:border-(--accent)"
+          className="mb-6 flex w-full items-center gap-3 rounded-xl border border-(--border) bg-(--bg) px-3 py-2.5 text-left text-sm font-semibold text-(--text-h) shadow-sm transition hover:border-(--accent-border) hover:bg-white/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
           type="button" onClick={handleNewChat}
         >
           <svg viewBox="0 0 24 24" fill="none" className="size-4.5 text-(--accent)" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
@@ -56,22 +72,34 @@ function Sidebar({ isOpen = false, onClose }) {
           New chat
         </button>
 
-        <div className="mb-2 px-2 text-xs font-semibold text-(--text)">
+        <div className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-(--text)">
           Recent conversations
         </div>
-        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto" aria-label="Past conversations">
+        <nav className="chat-scrollbar min-h-0 flex-1 space-y-1.5 overflow-y-auto" aria-label="Past conversations">
           {conversations.length > 0 ? (
             conversations.map((conversation) => (
               <button
-                className="w-full truncate rounded-lg px-3 py-2 text-left text-sm text-(--text-h) transition hover:bg-(--bg)"
+                className="group flex w-full min-w-0 items-center gap-2.5 rounded-xl border border-transparent px-2.5 py-2 text-left text-sm text-(--text-h) transition hover:border-(--border) hover:bg-(--bg) focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-(--accent)"
                 key={conversation._id}
+                id={conversation._id}
                 type="button"
+                title={conversation.title}
+                onClick={handleConversation}
               >
-                {conversation.title}
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/70 text-(--accent) transition group-hover:bg-(--accent-bg)">
+                  <svg viewBox="0 0 24 24" fill="none" className="size-4" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+                    <path d="M7 18.5 3.5 20l1.2-3.6A8 8 0 1 1 7 18.5Z" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M8 10h8M8 13.5h5" strokeLinecap="round" />
+                  </svg>
+                </span>
+                <span className="min-w-0 flex-1 truncate font-medium">{conversation.title}</span>
+                <svg viewBox="0 0 24 24" fill="none" className="size-4 shrink-0 text-(--text) opacity-0 transition group-hover:opacity-70" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                  <path d="m9 18 6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </button>
             ))
           ) : (
-            <p className="px-2 py-3 text-xs leading-relaxed text-(--text)">
+            <p className="rounded-xl border border-dashed border-(--border) px-3 py-3 text-xs leading-relaxed text-(--text)">
               Your conversations will appear here.
             </p>
           )}

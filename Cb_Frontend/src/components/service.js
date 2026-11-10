@@ -1,4 +1,23 @@
 
+export const getOneConversation = async (conversationId) =>{
+  try{
+    
+    const response = await fetch(`http://localhost:3010/api/conversations/${conversationId}`,{
+    method:"GET",
+    credentials: "include",
+    headers:{
+      "content-Type": "application/json"
+    }
+  })
+  const result = response.json();
+  return result;
+  
+  }
+  catch(error){
+    console.log("Error while fetching the Conv Id Messages",error)
+    throw error;
+  }
+}
 export const sendQuery = async(message,conversationId) =>{
   try{const response = await fetch("http://localhost:3010/api/chat",{
     method:"POST",

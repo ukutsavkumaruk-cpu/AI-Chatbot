@@ -1,8 +1,10 @@
 const express = require('express')
-const {getConversations } = require('../controllers/conversationsController')
+const {getConversations,getReqConversation} = require('../controllers/conversationsController')
 const ConversationsRouter = express.Router()
 
 ConversationsRouter.get('/',getConversations )
+ConversationsRouter.get('/:conv_id',getReqConversation )
+
 
 
 module.exports = ConversationsRouter;
