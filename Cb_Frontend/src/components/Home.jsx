@@ -1,6 +1,7 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
-import { addMessage,setConversationId,setConversations} from "../features/chat/chatSlice";
+import { useNavigate } from "react-router";
+import { addMessage,clearCurrentChat,removeMessage,setConversationId,setConversations} from "../features/chat/chatSlice";
 import { getChat, sendQuery,getConversations } from "./service";
 import ChatHero from "./ChatHero";
 import Section from "./Section";
@@ -9,7 +10,9 @@ import { login } from '../features/auth/userAuthSlice'
 
 export default function Home() {
   const messages = useSelector((state) => state.chat.messages);
+  const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState("");
   const conversationId = useSelector((state) => state.chat.conversationId)
@@ -24,19 +27,22 @@ export default function Home() {
         });
         const data = await response.json();
         console.log(data)
+
         if(data.isLoggedIn){
-          
           const Conversations = await getConversations();
           dispatch(login(data.User));
           console.log(Conversations)
           dispatch(setConversations(Conversations.conversations));
+        } else {
+          navigate("/Signup");
+          
         }
       };
       checkUser();
 
       async function fetchChat() {
         if(conversationId){
-            const result = await getChat();
+            const result = await getChat(conversationId);
             result.reply.map((el) => {
             dispatch(addMessage(el));
           });
@@ -49,14 +55,38 @@ export default function Home() {
   }, [dispatch]);
 
   async function handleSubmit(event) {
+    let optimisticMessageId;
+    let submittedMessage = "";
+
     try {
       event.preventDefault();
       const message = query.trim();
 
       if (!message) return;
 
+      let authenticated = isLoggedIn;
+      if (!authenticated) {
+        const response = await fetch("http://localhost:3010/api/auth/check", {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await response.json();
+        authenticated = data.isLoggedIn;
+        if (authenticated) {
+          dispatch(login(data.User));
+        }
+      }
+
+      if (!authenticated) {
+        navigate("/login");
+        return;
+      }
+
+      submittedMessage = message;
+      optimisticMessageId = crypto.randomUUID();
       dispatch(
         addMessage({
+          _id: optimisticMessageId,
           contents: message,
           role: "user",
         }),
@@ -84,8 +114,12 @@ export default function Home() {
         }),
       );
     } catch (err) {
+      if (optimisticMessageId) {
+        dispatch(removeMessage(optimisticMessageId));
+        setQuery((currentQuery) => currentQuery || submittedMessage);
+      }
       console.log("Error while getting response", err);
-      alert(err);
+      
     } finally {
       setIsLoading(false);
     }
@@ -129,7 +163,7 @@ export default function Home() {
                 className="ml-auto inline-flex size-9 cursor-pointer items-center justify-center rounded-full bg-(--accent) text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--text-h) disabled:cursor-not-allowed disabled:opacity-40"
                 type="submit"
                 aria-label="Send message"
-                disabled={!query.trim()}
+                disabled={!query.trim() || isLoading} 
               >
                 <svg
                   viewBox="0 0 24 24"

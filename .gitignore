@@ -34,3 +34,6 @@ desktop.ini
 # Editor settings
 # ==============================
 .vscode/
+
+#ISSUES
+ISSUE_SCENARIOS.txt

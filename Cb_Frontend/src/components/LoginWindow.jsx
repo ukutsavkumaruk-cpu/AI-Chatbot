@@ -5,7 +5,7 @@ import { FaCheck } from "react-icons/fa";
 import { useDispatch,useSelector } from "react-redux";
 import { login } from '../features/auth/userAuthSlice'
 import {getConversations} from './service'
-import {setConversations} from '../features/chat/chatSlice'
+import {setConversations,clearConversationId} from '../features/chat/chatSlice'
 
 function LoginSuccessPopup() {
   return (
@@ -32,6 +32,7 @@ function LoginWindow() {
 const dispatch = useDispatch();
 const navigate = useNavigate();
 const [showSuccess, setShowSuccess] = useState(false);
+const [loginError, setLoginError] = useState("");
 // const conversations = useSelector((state) => state.chat.conversations)
 
 useEffect(() => {
@@ -44,9 +45,11 @@ useEffect(() => {
   return () => clearTimeout(timeoutId);
 }, [showSuccess, navigate]);
 
+
 async function handleLogin(e) {
   try{
     e.preventDefault();
+    setLoginError("");
 
   const formData = new FormData(e.target);
 
@@ -61,6 +64,7 @@ async function handleLogin(e) {
   const response = await postLogin(userData);
 
     if (!response.isLoggedIn) {
+    setLoginError(response.message || "Login failed. Please check your credentials.");
     return;
   } 
 
@@ -68,6 +72,7 @@ async function handleLogin(e) {
     if(response.isLoggedIn){
     const Conversations = await getConversations();
     console.log(Conversations)
+    dispatch(clearConversationId());
     dispatch(setConversations(Conversations.conversations));
   }
   }
@@ -144,6 +149,12 @@ async function handleLogin(e) {
             />
           </div>
 
+          {loginError && (
+            <p className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+              {loginError}
+            </p>
+          )}
+
           <button
             className="w-full rounded-xl bg-(--accent) px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
             type="submit" 
@@ -152,8 +163,15 @@ async function handleLogin(e) {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-(--text)">
-          Welcome back to Chatie.
+        <p className="mt-6 text-center text-sm text-(--text)">
+          New to Chatie?{" "}
+          <button
+            className="font-semibold text-(--accent) underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
+            onClick={() => navigate("/signUp")}
+            type="button"
+          >
+            Create an account
+          </button>
         </p>
       </section>
     </div>

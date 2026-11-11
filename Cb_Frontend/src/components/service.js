@@ -11,7 +11,7 @@ export const getOneConversation = async (conversationId) =>{
   })
   const result = response.json();
   return result;
-  
+
   }
   catch(error){
     console.log("Error while fetching the Conv Id Messages",error)
@@ -36,11 +36,11 @@ export const sendQuery = async(message,conversationId) =>{
     console.log("Error occur while sending query or getting result int Frontend service.js :",err)
   }
 }
-export const getChat = async ()=>{
+export const getChat = async (conversationId)=>{
   
 try{
   
-  const response = await fetch("http://localhost:3010/api/chat",{
+  const response = await fetch(`http://localhost:3010/api/chat/${conversationId}`,{
     method:"GET",
   })
   const result = await response.json();

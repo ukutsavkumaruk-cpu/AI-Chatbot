@@ -2,7 +2,7 @@ import { useSelector,useDispatch } from "react-redux";
 import { useNavigate } from "react-router"
 import { logout } from '../features/auth/userAuthSlice'
 import {postLogout} from './Services/authServices'
-import {clearCurrentChat,setConversations} from '../features/chat/chatSlice'
+import {clearCurrentChat,setConversations,clearConversationId} from '../features/chat/chatSlice'
 
 
 function Header({ onMenuClick ,}) {
@@ -19,6 +19,7 @@ function Header({ onMenuClick ,}) {
 
     dispatch(clearCurrentChat());
     dispatch(setConversations([]));
+    dispatch(clearConversationId());
     localStorage.removeItem("conversationId");
     dispatch(logout());
     }
@@ -49,7 +50,6 @@ function Header({ onMenuClick ,}) {
           </span>
           <span className="text-base font-semibold tracking-tight text-(--text-h)">Chatie</span>
         </a>
-        <span className="hidden text-sm font-medium text-(--text-h) md:block">New chat</span>
       </div>
 
       <nav className="flex items-center gap-1.5" aria-label="Account actions">

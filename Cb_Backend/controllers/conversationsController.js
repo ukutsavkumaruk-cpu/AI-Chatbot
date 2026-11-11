@@ -5,7 +5,7 @@ const Message = require('../models/message')
 exports.getReqConversation = async(req,res,next) =>{
   try{
     const conv_id = req.params.conv_id;
-    const Messages = await Message.find({conversationId:conv_id}).sort({ updatedAt: -1 })
+    const Messages = await Message.find({conversationId:conv_id}).sort({ updatedAt: 1 })
      res.status(200).json({
       success: true,
       Message:Messages

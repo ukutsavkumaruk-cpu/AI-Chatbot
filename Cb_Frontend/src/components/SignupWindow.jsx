@@ -189,6 +189,16 @@ async function handleSignUp(e) {
         <p className="mt-6 text-center text-xs leading-relaxed text-(--text)">
           By creating an account, you agree to our terms of service and privacy policy.
         </p>
+        <p className="mt-4 text-center text-sm text-(--text)">
+          Already have an account?{" "}
+          <button
+            className="font-semibold text-(--accent) underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent)"
+            onClick={() => navigate("/login")}
+            type="button"
+          >
+            Log in
+          </button>
+        </p>
       </section>
     </div>
     )

@@ -76,7 +76,6 @@ exports.postChat = async (req,res,next)=>{
         success:false,
         errMessage:"Something went wrong, try again !"
       })
-      next(err)
     }
     
     const response = await ai.models.generateContent({
@@ -111,20 +110,20 @@ exports.postChat = async (req,res,next)=>{
       conversationId: conversation._id
     })
   }
-   catch (error) {
-    console.error("Gemini API error:", error);
+   catch (err) {
+    console.error("Gemini API error:", err);
 
     res.status(500).json({
       success:false,
       errMessage: "Failed to generate AI response",
       
     });
-    next(err)
   }
 }
 exports.getChat  = async (req,res,next)=>{
   try{
-    const response = await Message.find();
+    const {conversationId} = req.params
+    const response = await Message.find({conversationId}).sort({ updatedAt: 1 });
     res.status(200).json({
       success:true,
       reply:response
