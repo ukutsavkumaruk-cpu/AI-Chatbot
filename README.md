@@ -128,7 +128,18 @@ Authentication workflow:
 
 Chatie integrates Google's Gemini API through the `@google/genai` package.
 
-The backend communicates with Gemini and processes AI-generated responses before returning them to the frontend.
+The backend communicates with Gemini and processes AI-generated responses before returning them to the frontend. Messages are stored against a conversation in MongoDB, but the current request sends only the latest user message to Gemini. As a result, stored chat history is available to the app but is not yet used by the model as conversation context.
+
+### Conversation Context (Planned)
+
+To let Gemini follow earlier messages in the same conversation:
+
+1. On the backend, load messages for the authenticated conversation, ordered by creation time.
+2. Convert stored roles to Gemini roles (`user` and `model`; map Chatie's `agent` role to `model`).
+3. Send the recent messages as Gemini's `contents` along with each new request.
+4. Limit the history sent to Gemini (for example, to the latest 20 messages) to control token usage. For longer conversations, a rolling summary can be stored with the conversation and included with recent messages.
+
+Build the context from server-side records rather than trusting message history supplied by the client, and verify that the authenticated user owns the conversation. This provides memory within one conversation; remembering user preferences across separate conversations would require a separate, user-scoped memory feature.
 
 ## 🔒 Security
 
@@ -140,8 +151,8 @@ The backend communicates with Gemini and processes AI-generated responses before
 
 ## 🔮 Future Improvements
 
-* Chat history management.
-* Multiple conversation support.
+* Context-aware responses using recent messages from the current conversation.
+* Summaries for long conversations and optional user-scoped memory across conversations.
 * Streaming AI responses.
 * Better error handling.
 * Rate limiting.
