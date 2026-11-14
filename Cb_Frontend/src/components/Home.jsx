@@ -54,6 +54,7 @@ export default function Home() {
     }
   }, [dispatch]);
 
+  // hadle submit function ----------------------->>>>>>>
   async function handleSubmit(event) {
     let optimisticMessageId;
     let submittedMessage = "";

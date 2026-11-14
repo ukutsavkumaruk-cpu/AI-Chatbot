@@ -8,6 +8,8 @@ const jwt = require('jsonwebtoken');
 
 exports.postChat = async (req,res,next)=>{
   try{
+
+    
     const {message,conversationId} = req.body;
     
     
@@ -77,18 +79,27 @@ exports.postChat = async (req,res,next)=>{
         errMessage:"Something went wrong, try again !"
       })
     }
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
     
-    const response = await ai.models.generateContent({
+    let fullResponse =""
+    const response = await ai.models.generateContentStream({
       model:"gemini-3.5-flash-lite",
       contents:message,
     })
-
+    for await(const chunk of response){
+      if(chunk.text){
+        fullResponse += chunk.text;
+        console.log("This is the chunk",chunk.text)
+        res.write(chunk.text)
+      }
+      
+    }
     // 6. Save AI response
     try{
       const agentMessage = new Message({
       conversationId:conversationId ? conversationId : conversation._id,
       role:"agent",
-      contents: response.text,
+      contents: fullResponse,
       })
       await agentMessage.save();
     }
@@ -106,7 +117,7 @@ exports.postChat = async (req,res,next)=>{
     // 7. Send response to frontend
     res.status(200).json({
       success:true,
-      reply:response.text,
+      reply:fullResponse,
       conversationId: conversation._id
     })
   }

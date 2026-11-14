@@ -18,8 +18,11 @@ export const getOneConversation = async (conversationId) =>{
     throw error;
   }
 }
-export const sendQuery = async(message,conversationId) =>{
-  try{const response = await fetch("http://localhost:3010/api/chat",{
+
+// SendQuery function ------------>>>>>>>>>>>>>>>
+export const sendQuery = async(message,conversationId,onChunk) =>{
+  try{
+    const response = await fetch("http://localhost:3010/api/chat",{
     method:"POST",
     credentials: "include",
     headers:{
@@ -30,8 +33,39 @@ export const sendQuery = async(message,conversationId) =>{
       conversationId:conversationId
     })
   })
-  const result = await response.json()
-  return result}
+    if (!response.ok) {
+      throw new Error("Failed to generate response");
+    }
+
+    // Get readable stream
+    const reader = response.body.getReader();
+
+    const decoder = new TextDecoder();
+
+    let fullResponse = "";
+
+    while (true) {
+
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      const chunk = decoder.decode(value, {
+        stream: true
+      });
+
+      fullResponse += chunk;
+
+      // Send chunk to callback
+      onChunk(chunk);
+    }
+
+    // Decode any remaining bytes
+    fullResponse += decoder.decode();
+
+    return fullResponse;
+}
+
   catch(err){
     console.log("Error occur while sending query or getting result int Frontend service.js :",err)
   }
