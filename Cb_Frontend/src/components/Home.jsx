@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { addMessage,clearCurrentChat,removeMessage,setConversationId,setConversations} from "../features/chat/chatSlice";
+import { addMessage,appendMessageChunk,clearCurrentChat,removeMessage,setConversationId,setConversations} from "../features/chat/chatSlice";
 import { getChat, sendQuery,getConversations } from "./service";
 import ChatHero from "./ChatHero";
 import Section from "./Section";
@@ -57,6 +57,7 @@ export default function Home() {
   // hadle submit function ----------------------->>>>>>>
   async function handleSubmit(event) {
     let optimisticMessageId;
+    let streamingMessageId;
     let submittedMessage = "";
 
     try {
@@ -92,11 +93,27 @@ export default function Home() {
           role: "user",
         }),
       );
+      streamingMessageId = crypto.randomUUID();
+      dispatch(
+        addMessage({
+          _id: streamingMessageId,
+          contents: "",
+          role: "agent",
+        }),
+      );
 
       setIsLoading(true);
       setQuery("");
-      
-      const response = await sendQuery(message,conversationId);
+
+      const response = await sendQuery(
+        message,
+        conversationId,
+        (text) => dispatch(appendMessageChunk({ id: streamingMessageId, text })),
+        (newConversationId) => {
+          dispatch(setConversationId(newConversationId));
+          localStorage.setItem("conversationId", newConversationId);
+        },
+      );
 
       if (!response.success) {
         throw new Error(response.error);
@@ -108,16 +125,13 @@ export default function Home() {
       "conversationId",
       response.conversationId
       );
-      dispatch(
-        addMessage({
-          contents: response.reply,
-          role: "agent",
-        }),
-      );
     } catch (err) {
       if (optimisticMessageId) {
         dispatch(removeMessage(optimisticMessageId));
         setQuery((currentQuery) => currentQuery || submittedMessage);
+      }
+      if (streamingMessageId) {
+        dispatch(removeMessage(streamingMessageId));
       }
       console.log("Error while getting response", err);
       

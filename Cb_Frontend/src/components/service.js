@@ -19,57 +19,84 @@ export const getOneConversation = async (conversationId) =>{
   }
 }
 
-// SendQuery function ------------>>>>>>>>>>>>>>>
-export const sendQuery = async(message,conversationId,onChunk) =>{
-  try{
-    const response = await fetch("http://localhost:3010/api/chat",{
-    method:"POST",
+export const sendQuery = async (message, conversationId, onChunk, onMetadata) => {
+  if (typeof onChunk !== "function") {
+    throw new TypeError("onChunk must be a function");
+  }
+
+  const response = await fetch("http://localhost:3010/api/chat", {
+    method: "POST",
     credentials: "include",
-    headers:{
-      "content-Type": "application/json"
+    headers: {
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      message:message,
-      conversationId:conversationId
-    })
-  })
-    if (!response.ok) {
-      throw new Error("Failed to generate response");
+    body: JSON.stringify({ message, conversationId }),
+  });
+
+  if (!response.ok) {
+    const result = await response.json().catch(() => null);
+    throw new Error(result?.error || "Failed to generate response");
+  }
+
+  if (!response.body) {
+    throw new Error("Streaming is not supported by this browser");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let completedResponse = null;
+
+  const processEvent = (rawEvent) => {
+    const data = rawEvent
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => line.slice(5).trimStart())
+      .join("\n");
+
+    if (!data) return;
+
+    const event = JSON.parse(data);
+    if (event.type === "metadata") {
+      onMetadata?.(event.conversationId);
+    } else if (event.type === "chunk") {
+      onChunk(event.text);
+    } else if (event.type === "done") {
+      completedResponse = event;
+    } else if (event.type === "error") {
+      throw new Error(event.error || "Failed to complete AI response");
     }
+  };
 
-    // Get readable stream
-    const reader = response.body.getReader();
-
-    const decoder = new TextDecoder();
-
-    let fullResponse = "";
-
+  try {
     while (true) {
-
       const { done, value } = await reader.read();
+      buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+
+      const events = buffer.split(/\r?\n\r?\n/);
+      buffer = events.pop() || "";
+      events.forEach(processEvent);
 
       if (done) break;
-
-      const chunk = decoder.decode(value, {
-        stream: true
-      });
-
-      fullResponse += chunk;
-
-      // Send chunk to callback
-      onChunk(chunk);
     }
 
-    // Decode any remaining bytes
-    fullResponse += decoder.decode();
-
-    return fullResponse;
-}
-
-  catch(err){
-    console.log("Error occur while sending query or getting result int Frontend service.js :",err)
+    if (buffer.trim()) {
+      processEvent(buffer);
+    }
+  } finally {
+    reader.releaseLock();
   }
-}
+
+  if (!completedResponse) {
+    throw new Error("The AI response stream ended unexpectedly");
+  }
+
+  return {
+    success: true,
+    conversationId: completedResponse.conversationId,
+    reply: completedResponse.reply,
+  };
+};
 export const getChat = async (conversationId)=>{
   
 try{

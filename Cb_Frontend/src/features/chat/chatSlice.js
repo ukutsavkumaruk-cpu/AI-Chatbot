@@ -24,6 +24,14 @@ const chatSlice = createSlice({
     addMessage:(state,action)=>{
       state.messages.push(action.payload)
     },
+    appendMessageChunk: (state, action) => {
+      const message = state.messages.find(
+        (item) => item._id === action.payload.id,
+      );
+      if (message) {
+        message.contents += action.payload.text;
+      }
+    },
     removeMessage: (state, action) => {
       state.messages = state.messages.filter((message) => message._id !== action.payload);
     },
@@ -31,5 +39,5 @@ const chatSlice = createSlice({
   }
 })
 export const {addMessage,setMessages,setConversationId,
-  clearCurrentChat,setConversations,clearConversationId,removeMessage} = chatSlice.actions;
+  clearCurrentChat,setConversations,clearConversationId,removeMessage,appendMessageChunk} = chatSlice.actions;
 export default chatSlice.reducer;

@@ -6,24 +6,24 @@ const jwt = require('jsonwebtoken');
 
 
 
-exports.postChat = async (req,res,next)=>{
-  try{
+exports.postChat = async (req, res) => {
+  let streamStarted = false;
 
-    
-    const {message,conversationId} = req.body;
-    
-    
-    
-    // 1. Validate message
-    if(!message || !message.trim()){
+  const sendEvent = (event) => {
+    res.write(`data: ${JSON.stringify(event)}\n\n`);
+  };
+
+  try {
+    const { message, conversationId } = req.body;
+
+    if (typeof message !== "string" || !message.trim()) {
       return res.status(400).json({
-        error:"Message is required",
-      })
+        success: false,
+        error: "Message is required",
+      });
     }
-     
-    // 2. Verify JWT
+
     const token = req.cookies.token;
-   
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -31,106 +31,104 @@ exports.postChat = async (req,res,next)=>{
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // 3. Find existing conversation or create new one
-    let conversation;
-
-    if (conversationId) {
-        if (!mongoose.Types.ObjectId.isValid(conversationId)) {
-            return res.status(400).json({
-              success: false,
-              error: "Invalid conversation ID",
-            });
-          }
-
-        conversation = await Conversation.findOne({
-          _id: conversationId,
-          userId: decoded.userId,
-        });
-
-        if (!conversation) {
-            return res.status(404).json({
-              success: false,
-              error: "Conversation not found",
-            });
-          }
-        }
-    else {
-        conversation = await Conversation.create({
-          userId: decoded.userId,
-          title: message.trim().slice(0, 100),
-        });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
     }
 
-    // 4. Save user message
-    try{
-      const userMessage = await Message.create({
+    let conversation;
+    if (conversationId) {
+      if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid conversation ID",
+        });
+      }
+
+      conversation = await Conversation.findOne({
+        _id: conversationId,
+        userId: decoded.userId,
+      });
+
+      if (!conversation) {
+        return res.status(404).json({
+          success: false,
+          error: "Conversation not found",
+        });
+      }
+    } else {
+      conversation = await Conversation.create({
+        userId: decoded.userId,
+        title: message.trim().slice(0, 100),
+      });
+    }
+
+    await Message.create({
       conversationId: conversation._id,
       role: "user",
       contents: message.trim(),
-      });
-      await userMessage.save();
-    }
-    catch(err){
-      console.log("Error occur during saving User message to DataBase",err);
-      res.status(500).json({
-        success:false,
-        errMessage:"Something went wrong, try again !"
-      })
-    }
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    
-    let fullResponse =""
-    const response = await ai.models.generateContentStream({
-      model:"gemini-3.5-flash-lite",
-      contents:message,
-    })
-    for await(const chunk of response){
-      if(chunk.text){
-        fullResponse += chunk.text;
-        console.log("This is the chunk",chunk.text)
-        res.write(chunk.text)
-      }
-      
-    }
-    // 6. Save AI response
-    try{
-      const agentMessage = new Message({
-      conversationId:conversationId ? conversationId : conversation._id,
-      role:"agent",
-      contents: fullResponse,
-      })
-      await agentMessage.save();
-    }
-    catch(err){
-      console.log("Error occur during saving Agent message to DataBase",err);
-      res.status(500).json({
-        success:false,
-        errMessage:"Something went wrong, try again !"
-      })
-      next(err)
-    }
-     
-    console.log("This is the response from Gemini: ",response.text)
+    });
 
-    // 7. Send response to frontend
-    res.status(200).json({
-      success:true,
-      reply:fullResponse,
-      conversationId: conversation._id
-    })
-  }
-   catch (err) {
-    console.error("Gemini API error:", err);
+    const response = await ai.models.generateContentStream({
+      model: "gemini-3.5-flash-lite",
+      contents: message.trim(),
+    });
+
+    res.status(200);
+    res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
+    streamStarted = true;
+
+    sendEvent({ type: "metadata", conversationId: conversation._id });
+
+    let fullResponse = "";
+    for await (const chunk of response) {
+      if (chunk.text) {
+        fullResponse += chunk.text;
+        sendEvent({ type: "chunk", text: chunk.text });
+      }
+    }
+
+    await Message.create({
+      conversationId: conversation._id,
+      role: "agent",
+      contents: fullResponse,
+    });
+
+    sendEvent({
+      type: "done",
+      conversationId: conversation._id,
+      reply: fullResponse,
+    });
+    res.end();
+  } catch (err) {
+    console.error("Chat stream error:", err);
+
+    if (streamStarted) {
+      if (!res.writableEnded) {
+        sendEvent({
+          type: "error",
+          error: "Failed to complete AI response",
+        });
+        res.end();
+      }
+      return;
+    }
 
     res.status(500).json({
-      success:false,
-      errMessage: "Failed to generate AI response",
-      
+      success: false,
+      error: "Failed to generate AI response",
     });
   }
-}
+};
 exports.getChat  = async (req,res,next)=>{
   try{
     const {conversationId} = req.params
