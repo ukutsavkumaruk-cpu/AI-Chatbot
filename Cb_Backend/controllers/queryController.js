@@ -16,13 +16,14 @@ exports.postChat = async (req, res) => {
   try {
     const { message, conversationId } = req.body;
 
+// Type of message checking----------------->>>>>>>>>
     if (typeof message !== "string" || !message.trim()) {
       return res.status(400).json({
         success: false,
         error: "Message is required",
       });
     }
-
+// Token Validation Checking --------------------->>>>>>>>>>>>.
     const token = req.cookies.token;
     if (!token) {
       return res.status(401).json({
@@ -30,7 +31,6 @@ exports.postChat = async (req, res) => {
         error: "Authentication required",
       });
     }
-
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -41,6 +41,7 @@ exports.postChat = async (req, res) => {
       });
     }
 
+// Validating ConversationId ------------------>>>>>>>>>>>>>>>>>>> 
     let conversation;
     if (conversationId) {
       if (!mongoose.Types.ObjectId.isValid(conversationId)) {
@@ -49,7 +50,6 @@ exports.postChat = async (req, res) => {
           error: "Invalid conversation ID",
         });
       }
-
       conversation = await Conversation.findOne({
         _id: conversationId,
         userId: decoded.userId,
@@ -67,13 +67,13 @@ exports.postChat = async (req, res) => {
         title: message.trim().slice(0, 100),
       });
     }
-
+// Saving User Message to database ------------->>>>>>>>>>>
     await Message.create({
       conversationId: conversation._id,
       role: "user",
       contents: message.trim(),
     });
-
+// Sending response to AI model --------------->>>>>>>>>>>>>
     const response = await ai.models.generateContentStream({
       model: "gemini-3.5-flash-lite",
       contents: message.trim(),
@@ -96,7 +96,7 @@ exports.postChat = async (req, res) => {
         sendEvent({ type: "chunk", text: chunk.text });
       }
     }
-
+// Saving AI message to database ------------>>>>>>>>>
     await Message.create({
       conversationId: conversation._id,
       role: "agent",
@@ -108,8 +108,11 @@ exports.postChat = async (req, res) => {
       conversationId: conversation._id,
       reply: fullResponse,
     });
+
     res.end();
-  } catch (err) {
+
+  } 
+  catch (err) {
     console.error("Chat stream error:", err);
 
     if (streamStarted) {
@@ -129,6 +132,9 @@ exports.postChat = async (req, res) => {
     });
   }
 };
+
+
+
 exports.getChat  = async (req,res,next)=>{
   try{
     const {conversationId} = req.params

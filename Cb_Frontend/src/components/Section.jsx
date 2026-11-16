@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import Loader from './Loader';
 import OneMessage from './OneMessage';
 
-function Section({isLoading,className = ''}){
+function Section({isLoading,waitingForFirstChunk,className = ''}){
 
   const messages = useSelector((state) => state.chat.messages);
   console.log("Ye rahi redux se aayi messages: ", messages)
@@ -20,7 +20,7 @@ function Section({isLoading,className = ''}){
           <OneMessage message={message} />
         </div>
       ))}
-      {isLoading && (
+      {waitingForFirstChunk && (
         <div className="flex w-full justify-start py-1.5" role="status" aria-label="Waiting for AI response">
           <Loader />
         </div>

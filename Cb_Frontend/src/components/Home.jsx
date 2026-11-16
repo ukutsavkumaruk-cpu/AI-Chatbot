@@ -15,6 +15,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState("");
+  const [waitingForFirstChunk,isWaitingForFirstChunk] = useState(false)
   const conversationId = useSelector((state) => state.chat.conversationId)
   
 
@@ -103,12 +104,15 @@ export default function Home() {
       );
 
       setIsLoading(true);
+      isWaitingForFirstChunk(true);
       setQuery("");
 
       const response = await sendQuery(
         message,
         conversationId,
-        (text) => dispatch(appendMessageChunk({ id: streamingMessageId, text })),
+        (text) => {
+          isWaitingForFirstChunk(false);
+          dispatch(appendMessageChunk({ id: streamingMessageId, text }))},
         (newConversationId) => {
           dispatch(setConversationId(newConversationId));
           localStorage.setItem("conversationId", newConversationId);
@@ -119,12 +123,6 @@ export default function Home() {
         throw new Error(response.error);
       }
 
-      dispatch(setConversationId(response.conversationId))
-
-      localStorage.setItem(
-      "conversationId",
-      response.conversationId
-      );
     } catch (err) {
       if (optimisticMessageId) {
         dispatch(removeMessage(optimisticMessageId));
@@ -136,6 +134,7 @@ export default function Home() {
       console.log("Error while getting response", err);
       
     } finally {
+      isWaitingForFirstChunk(false)
       setIsLoading(false);
     }
   }
@@ -152,6 +151,7 @@ export default function Home() {
             }`}
             messages={messages}
             isLoading={isLoading}
+            waitingForFirstChunk={waitingForFirstChunk}
           />
 
           <form

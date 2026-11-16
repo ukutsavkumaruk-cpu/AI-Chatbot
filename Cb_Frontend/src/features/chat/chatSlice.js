@@ -27,6 +27,7 @@ const chatSlice = createSlice({
     appendMessageChunk: (state, action) => {
       const message = state.messages.find(
         (item) => item._id === action.payload.id,
+        
       );
       if (message) {
         message.contents += action.payload.text;

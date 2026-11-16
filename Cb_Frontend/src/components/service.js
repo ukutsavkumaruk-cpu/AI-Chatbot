@@ -41,9 +41,10 @@ export const sendQuery = async (message, conversationId, onChunk, onMetadata) =>
   if (!response.body) {
     throw new Error("Streaming is not supported by this browser");
   }
-
+ // Reading Chunks from the backend ---------------------------------->>>>>>>>>>>>
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
+  
   let buffer = "";
   let completedResponse = null;
 
@@ -97,6 +98,8 @@ export const sendQuery = async (message, conversationId, onChunk, onMetadata) =>
     reply: completedResponse.reply,
   };
 };
+
+// GetChat function ---------------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 export const getChat = async (conversationId)=>{
   
 try{
