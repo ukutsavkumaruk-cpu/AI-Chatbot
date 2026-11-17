@@ -10,15 +10,11 @@ The project focuses on implementing real-world full-stack development concepts, 
 
 ## ✨ Features
 
-* AI-powered conversations using Gemini API.
-* Interactive chat interface.
-* User Signup and Login.
-* JWT-based authentication using HttpOnly cookies.
-* Protected backend routes.
-* MongoDB database integration.
-* State management using Redux Toolkit.
-
-*Note: Keep only the features that are actually implemented.*
+* AI-generated responses using Google's Gemini API.
+* Chat responses stream into the interface as they are generated.
+* User signup, login, and logout with JWT authentication in HttpOnly cookies.
+* Conversations and messages are stored in MongoDB and can be revisited.
+* Redux Toolkit state management for chat and authentication.
 
 ## 🛠️ Tech Stack
 
@@ -46,19 +42,20 @@ Chatie/
 │
 ├── Cb_Frontend/
 │   ├── src/
-│   ├── public/
+│   │   ├── components/
+│   │   └── features/
 │   └── package.json
 │
 ├── Cb_Backend/
 │   ├── controllers/
+│   ├── middleware/
 │   ├── models/
 │   ├── routes/
-│   ├── middleware/
+│   ├── services/
 │   ├── package.json
-│   └── server.js
+│   └── app.js
 │
-├── docs/
-│
+├── package.json
 └── README.md
 ```
 
@@ -68,46 +65,49 @@ Chatie/
 
 ```bash
 git clone YOUR_GITHUB_REPOSITORY_URL
+cd AI-Chatbot
 ```
 
-### 2. Setup Backend
+### 2. Install Dependencies
 
 ```bash
-cd Cb_Backend
 npm install
+npm install --prefix Cb_Backend
+npm install --prefix Cb_Frontend
 ```
 
-Create a `.env` file:
+### 3. Configure the Backend
+
+Create `Cb_Backend/.env`:
 
 ```env
-PORT=3000
-MONGODB_URI=your_mongodb_connection_string
+DB_URL=your_mongodb_connection_string
 JWT_SECRET=your_secret_key
 GEMINI_API_KEY=your_gemini_api_key
 ```
 
-Start the backend:
+### 4. Start the Application
+
+From the repository root, run:
 
 ```bash
 npm run dev
 ```
 
-### 3. Setup Frontend
+This starts the Vite frontend at `http://localhost:5173` and the Express backend at `http://localhost:3010`.
+
+To start either app separately:
 
 ```bash
+# Backend
+cd Cb_Backend
+npm start
+```
+
+```bash
+# Frontend (in a separate terminal)
 cd Cb_Frontend
 npm install
-```
-
-Create a `.env` file:
-
-```env
-VITE_API_URL=http://localhost:3000
-```
-
-Start the frontend:
-
-```bash
 npm run dev
 ```
 
@@ -126,9 +126,9 @@ Authentication workflow:
 
 ## 🧠 AI Integration
 
-Chatie integrates Google's Gemini API through the `@google/genai` package.
+Chatie integrates Google's Gemini API through the `@google/genai` package and streams generated response chunks to the chat interface.
 
-The backend communicates with Gemini and processes AI-generated responses before returning them to the frontend. Messages are stored against a conversation in MongoDB, but the current request sends only the latest user message to Gemini. As a result, stored chat history is available to the app but is not yet used by the model as conversation context.
+Messages are stored against a conversation in MongoDB, but each request currently sends only the latest user message to Gemini. Stored chat history can be revisited in the app, but it is not yet used by the model as conversation context.
 
 ### Conversation Context (Planned)
 
@@ -153,8 +153,6 @@ Build the context from server-side records rather than trusting message history 
 
 * Context-aware responses using recent messages from the current conversation.
 * Summaries for long conversations and optional user-scoped memory across conversations.
-* Streaming AI responses.
-* Better error handling.
 * Rate limiting.
 * Improved authentication and session management.
 
