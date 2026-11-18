@@ -67,18 +67,22 @@ exports.postChat = async (req, res) => {
         title: message.trim().slice(0, 100),
       });
     }
+    
 // Saving User Message to database ------------->>>>>>>>>>>
     await Message.create({
       conversationId: conversation._id,
       role: "user",
       contents: message.trim(),
     });
-// Sending response to AI model --------------->>>>>>>>>>>>>
-    const response = await ai.models.generateContentStream({
-      model: "gemini-3.5-flash-lite",
-      contents: message.trim(),
-    });
 
+// Sending response to AI model --------------->>>>>>>>>>>>>
+    const response = await ai.interactions.create({
+      model: "gemini-3.5-flash-lite",
+      input: message.trim(),
+      previous_interaction_id: conversation.interactionId || undefined,
+      stream: true
+    });
+    
     res.status(200);
     res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
     res.setHeader("Cache-Control", "no-cache, no-transform");
@@ -90,10 +94,29 @@ exports.postChat = async (req, res) => {
     sendEvent({ type: "metadata", conversationId: conversation._id });
 
     let fullResponse = "";
-    for await (const chunk of response) {
-      if (chunk.text) {
-        fullResponse += chunk.text;
-        sendEvent({ type: "chunk", text: chunk.text });
+    let latestInteractionId =""
+    for await (const event of response) {
+
+      if (event.event_type === "interaction.created") {
+          latestInteractionId = event.interaction.id;
+      }
+      else if (event.event_type === "step.delta" && event.delta?.type === "text") {
+        fullResponse += event.delta.text
+        sendEvent({ type: "event", text: event.delta.text});
+      }
+      else if (event.event_type === "interaction.completed") {
+
+        await Conversation.findByIdAndUpdate(
+          conversation._id,
+          { interactionId: latestInteractionId }
+        );
+
+        sendEvent({
+          type: "done",
+          conversationId: conversation._id,
+          reply: fullResponse
+        });
+        res.end();
       }
     }
 // Saving AI message to database ------------>>>>>>>>>
@@ -102,14 +125,6 @@ exports.postChat = async (req, res) => {
       role: "agent",
       contents: fullResponse,
     });
-
-    sendEvent({
-      type: "done",
-      conversationId: conversation._id,
-      reply: fullResponse,
-    });
-
-    res.end();
 
   } 
   catch (err) {

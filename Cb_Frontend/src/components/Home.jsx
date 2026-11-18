@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from "react-redux";
-import { useState, useEffect } from "react";
+import { useState, useEffect,useRef } from "react";
 import { useNavigate } from "react-router";
 import { addMessage,appendMessageChunk,clearCurrentChat,removeMessage,setConversationId,setConversations} from "../features/chat/chatSlice";
 import { getChat, sendQuery,getConversations } from "./service";
@@ -17,9 +17,11 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [waitingForFirstChunk,isWaitingForFirstChunk] = useState(false)
   const conversationId = useSelector((state) => state.chat.conversationId)
+  const sectionRef = useRef(null);
   
 
   useEffect(() => {
+
     try {
       const checkUser = async () => {
         const response = await fetch("http://localhost:3010/api/auth/check",{
@@ -50,6 +52,10 @@ export default function Home() {
         }
       }
       fetchChat();
+      const element = sectionRef.current;
+      if (!element) return;
+      element.scrollTop = element.scrollHeight;
+
     } catch (error) {
       console.log("Got error in fetching chat", error);
     }
@@ -59,7 +65,7 @@ export default function Home() {
   async function handleSubmit(event) {
     let optimisticMessageId;
     let streamingMessageId;
-    let submittedMessage = "";
+    let submittedMessage ="";
 
     try {
       event.preventDefault();
@@ -123,7 +129,8 @@ export default function Home() {
         throw new Error(response.error);
       }
 
-    } catch (err) {
+    } 
+    catch (err) {
       if (optimisticMessageId) {
         dispatch(removeMessage(optimisticMessageId));
         setQuery((currentQuery) => currentQuery || submittedMessage);
@@ -146,6 +153,7 @@ export default function Home() {
           {messages.length === 0 && <ChatHero />}
 
           <Section
+            ref={sectionRef}
             className={`chat-scrollbar min-h-0 w-full flex-1 overflow-y-auto py-3 ${
               messages.length === 0 ? "hidden" : "flex flex-col gap-3"
             }`}

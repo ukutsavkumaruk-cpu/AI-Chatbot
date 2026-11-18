@@ -9,7 +9,11 @@ const conversationSchema = new mongoose.Schema({
   title: {
     type: String,
     default: "New Chat"
-  }
+  },
+  interactionId: {
+    type: String,
+    default: null
+}
 }, {
   timestamps: true
 });

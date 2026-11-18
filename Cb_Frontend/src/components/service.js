@@ -60,7 +60,7 @@ export const sendQuery = async (message, conversationId, onChunk, onMetadata) =>
     const event = JSON.parse(data);
     if (event.type === "metadata") {
       onMetadata?.(event.conversationId);
-    } else if (event.type === "chunk") {
+    } else if (event.type === "event") {
       onChunk(event.text);
     } else if (event.type === "done") {
       completedResponse = event;
