@@ -52,14 +52,19 @@ export default function Home() {
         }
       }
       fetchChat();
-      const element = sectionRef.current;
-      if (!element) return;
-      element.scrollTop = element.scrollHeight;
 
     } catch (error) {
       console.log("Got error in fetching chat", error);
     }
   }, [dispatch]);
+
+  useEffect(() => {
+  const element = sectionRef.current;
+
+  if (!element) return;
+
+  element.scrollTop = element.scrollHeight;
+}, [messages, waitingForFirstChunk]);
 
   // hadle submit function ----------------------->>>>>>>
   async function handleSubmit(event) {

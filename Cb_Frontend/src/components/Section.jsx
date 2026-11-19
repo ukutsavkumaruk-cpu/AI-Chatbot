@@ -2,12 +2,12 @@ import { useSelector } from 'react-redux';
 import Loader from './Loader';
 import OneMessage from './OneMessage';
 
-function Section({isLoading,waitingForFirstChunk,className = ''}){
+function Section({ref,waitingForFirstChunk,className = ''}){
 
   const messages = useSelector((state) => state.chat.messages);
   console.log("Ye rahi redux se aayi messages: ", messages)
   return (
-    <section className={className} aria-label="Chat messages">
+    <section ref={ref} className={className} aria-label="Chat messages">
       {messages.map((message) => (
         <div
           key={message._id}

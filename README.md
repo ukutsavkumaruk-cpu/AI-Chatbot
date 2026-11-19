@@ -126,20 +126,13 @@ Authentication workflow:
 
 ## 🧠 AI Integration
 
-Chatie integrates Google's Gemini API through the `@google/genai` package and streams generated response chunks to the chat interface.
+Chatie integrates Google's Gemini API through the `@google/genai` package and streams generated text to the chat interface using server-sent events (SSE).
 
-Messages are stored against a conversation in MongoDB, but each request currently sends only the latest user message to Gemini. Stored chat history can be revisited in the app, but it is not yet used by the model as conversation context.
+### Conversation Context
 
-### Conversation Context (Planned)
+Each MongoDB conversation stores the latest Gemini `interactionId`. When a user sends another message in that conversation, the backend passes that ID as `previous_interaction_id`; Gemini can then continue the same interaction chain. When Gemini completes a response, the backend saves the new interaction ID for the next turn.
 
-To let Gemini follow earlier messages in the same conversation:
-
-1. On the backend, load messages for the authenticated conversation, ordered by creation time.
-2. Convert stored roles to Gemini roles (`user` and `model`; map Chatie's `agent` role to `model`).
-3. Send the recent messages as Gemini's `contents` along with each new request.
-4. Limit the history sent to Gemini (for example, to the latest 20 messages) to control token usage. For longer conversations, a rolling summary can be stored with the conversation and included with recent messages.
-
-Build the context from server-side records rather than trusting message history supplied by the client, and verify that the authenticated user owns the conversation. This provides memory within one conversation; remembering user preferences across separate conversations would require a separate, user-scoped memory feature.
+Starting a new conversation creates a separate chain without a previous interaction ID. This keeps chat context isolated between conversations. User and agent messages are also stored in MongoDB so the chat can be displayed again in the app. The backend sends the current message as the Interactions API `input`; it does not rebuild the prompt by sending the full MongoDB message history on every request.
 
 ## 🔒 Security
 
@@ -151,8 +144,8 @@ Build the context from server-side records rather than trusting message history 
 
 ## 🔮 Future Improvements
 
-* Context-aware responses using recent messages from the current conversation.
-* Summaries for long conversations and optional user-scoped memory across conversations.
+* Add a database-history fallback or summaries for conversations when provider interaction state is unavailable or needs to be compacted.
+* Optional user-scoped memory across separate conversations.
 * Rate limiting.
 * Improved authentication and session management.
 
