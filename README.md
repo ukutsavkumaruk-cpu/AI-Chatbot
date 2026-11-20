@@ -1,74 +1,63 @@
-# 🤖 Chatie – AI Chatbot
+# Chatie - AI Chatbot
 
-Chatie is an AI-powered chatbot application designed to provide interactive conversations and AI-generated responses using Google's Gemini API.
+Chatie is a full-stack AI chat application built with React and Node.js. It uses Google's Gemini API for streaming responses, MongoDB for conversations and messages, and JWT authentication stored in an HttpOnly cookie.
 
-## 🚀 Project Overview
+## Features
 
-Chatie is a full-stack AI chatbot built using the MERN stack. It provides a conversational interface where users can interact with an AI model and receive intelligent responses.
+- Streamed Gemini responses with server-sent events (SSE)
+- User signup, login, logout, and authentication checks
+- Multiple saved conversations with persistent message history
+- Responsive chat sidebar and mobile layout
+- Redux Toolkit state for users, chats, and conversations
+- Optimistic user messages and loading feedback during streaming
 
-The project focuses on implementing real-world full-stack development concepts, including REST APIs, authentication, database management, and AI integration.
+## Tech Stack
 
-## ✨ Features
+| Frontend | Backend |
+| --- | --- |
+| React 19 | Node.js |
+| Vite | Express 5 |
+| Tailwind CSS 4 | MongoDB and Mongoose |
+| Redux Toolkit | JWT and bcrypt |
+| React Router | Google Gen AI SDK |
 
-* AI-generated responses using Google's Gemini API.
-* Chat responses stream into the interface as they are generated.
-* User signup, login, and logout with JWT authentication in HttpOnly cookies.
-* Conversations and messages are stored in MongoDB and can be revisited.
-* Redux Toolkit state management for chat and authentication.
-
-## 🛠️ Tech Stack
-
-### Frontend
-
-* React 19
-* Vite
-* Tailwind CSS v4
-* Redux Toolkit
-* React Router
-
-### Backend
-
-* Node.js
-* Express.js 5
-* MongoDB
-* Mongoose
-* JSON Web Token (JWT)
-* Google Gemini API
-
-## 📁 Project Structure
+## Project Structure
 
 ```text
-Chatie/
-│
+AI-Chatbot/
 ├── Cb_Frontend/
 │   ├── src/
-│   │   ├── components/
-│   │   └── features/
+│   │   ├── components/     # Chat UI, sidebar, authentication, and services
+│   │   ├── features/       # Redux auth and chat slices
+│   │   └── app/store.js
 │   └── package.json
-│
 ├── Cb_Backend/
-│   ├── controllers/
+│   ├── controllers/        # Auth, chat, and conversation handlers
 │   ├── middleware/
-│   ├── models/
+│   ├── models/             # User, conversation, and message schemas
 │   ├── routes/
-│   ├── services/
-│   ├── package.json
+│   ├── services/           # Gemini client configuration
 │   └── app.js
-│
-├── package.json
+├── package.json            # Runs both applications
 └── README.md
 ```
 
-## ⚙️ Installation & Setup
+## Prerequisites
 
-### 1. Clone the Repository
+- Node.js and npm
+- MongoDB Atlas or a local MongoDB server
+- A Google Gemini API key
+
+## Installation
+
+### 1. Clone the repository
 
 ```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
+git clone https://github.com/ukutsavkumaruk-cpu/AI-Chatbot.git
 cd AI-Chatbot
 ```
 
-### 2. Install Dependencies
+### 2. Install dependencies
 
 ```bash
 npm install
@@ -76,85 +65,98 @@ npm install --prefix Cb_Backend
 npm install --prefix Cb_Frontend
 ```
 
-### 3. Configure the Backend
+### 3. Configure the backend
 
 Create `Cb_Backend/.env`:
 
 ```env
-DB_URL=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
+DB_URL=mongodb://127.0.0.1:27017/chatie
+JWT_SECRET=replace_with_a_long_random_secret
 GEMINI_API_KEY=your_gemini_api_key
+NODE_ENV=development
 ```
 
-### 4. Start the Application
+`GEMINI_API_KEY` is read by `Cb_Backend/services/geminiClient.js`. See `.env.example` only if one has been added to your local checkout.
 
-From the repository root, run:
+### 4. Start the application
+
+Run both services from the repository root:
 
 ```bash
 npm run dev
 ```
 
-This starts the Vite frontend at `http://localhost:5173` and the Express backend at `http://localhost:3010`.
+- Frontend: http://localhost:5173
+- Backend: http://localhost:3010
 
-To start either app separately:
-
-```bash
-# Backend
-cd Cb_Backend
-npm start
-```
+Start each service separately when needed:
 
 ```bash
-# Frontend (in a separate terminal)
-cd Cb_Frontend
-npm install
-npm run dev
+npm start --prefix Cb_Backend
+npm run dev --prefix Cb_Frontend
 ```
 
-## 🔐 Authentication
+## How It Works
 
-Chatie uses JWT-based authentication.
+1. A user signs up or logs in.
+2. The backend validates credentials and returns a JWT in an HttpOnly cookie.
+3. The frontend submits a message with the active conversation ID.
+4. The backend validates the JWT and creates or updates a conversation.
+5. Gemini streams response chunks over SSE.
+6. The frontend appends chunks to the active agent message in real time.
+7. The backend saves the completed user and agent messages in MongoDB.
 
-Authentication workflow:
+Each conversation stores Gemini's latest `interactionId`. For follow-up messages, the backend passes `previous_interaction_id` so Gemini can continue the same interaction chain.
 
-1. User registers with credentials.
-2. Password is securely hashed before storing in MongoDB.
-3. User logs in using email and password.
-4. Backend generates a JWT.
-5. JWT is stored in an HttpOnly cookie.
-6. Protected routes verify the JWT before granting access.
+## API Overview
 
-## 🧠 AI Integration
+All routes are served from `http://localhost:3010`.
 
-Chatie integrates Google's Gemini API through the `@google/genai` package and streams generated text to the chat interface using server-sent events (SSE).
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `POST` | `/api/auth/signUp` | Register a user |
+| `POST` | `/api/auth/login` | Log in and set the auth cookie |
+| `POST` | `/api/auth/logout` | Clear the auth cookie |
+| `GET` | `/api/auth/check` | Check the current authenticated user |
+| `GET` | `/api/conversations` | List the user's conversations |
+| `GET` | `/api/conversations/:conv_id` | Get messages for a conversation |
+| `GET` | `/api/chat/:conversationId` | Get persisted chat messages |
+| `POST` | `/api/chat` | Send a message and stream the Gemini response |
 
-### Conversation Context
+The chat endpoint accepts:
 
-Each MongoDB conversation stores the latest Gemini `interactionId`. When a user sends another message in that conversation, the backend passes that ID as `previous_interaction_id`; Gemini can then continue the same interaction chain. When Gemini completes a response, the backend saves the new interaction ID for the next turn.
+```json
+{
+  "message": "Explain MongoDB transactions",
+  "conversationId": "optional_existing_mongodb_object_id"
+}
+```
 
-Starting a new conversation creates a separate chain without a previous interaction ID. This keeps chat context isolated between conversations. User and agent messages are also stored in MongoDB so the chat can be displayed again in the app. The backend sends the current message as the Interactions API `input`; it does not rebuild the prompt by sending the full MongoDB message history on every request.
+## Authentication and Security
 
-## 🔒 Security
+- Passwords are hashed with bcrypt.
+- JWT values expire after 30 minutes in the token payload.
+- Login cookies are HttpOnly and set with `SameSite=Lax`.
+- Cookies use the `Secure` flag in production.
+- Protected chat and conversation operations validate the user from the JWT.
+- CORS is currently restricted to `http://localhost:5173`.
 
-* Password hashing.
-* Environment variables for sensitive credentials.
-* HttpOnly cookies for JWT storage.
-* JWT verification middleware.
-* CORS configuration.
+## Build and Lint
 
-## 🔮 Future Improvements
+```bash
+npm run build --prefix Cb_Frontend
+npm run lint --prefix Cb_Frontend
+```
 
-* Add a database-history fallback or summaries for conversations when provider interaction state is unavailable or needs to be compacted.
-* Optional user-scoped memory across separate conversations.
-* Rate limiting.
-* Improved authentication and session management.
+## Troubleshooting
 
-## 👨‍💻 Author
+- **MongoDB connection fails:** verify `DB_URL` and confirm that MongoDB or MongoDB Atlas is reachable.
+- **Gemini requests fail:** verify `GEMINI_API_KEY` and your API/model access.
+- **Authentication is lost:** confirm that cookies are enabled and that frontend and backend origins match the local CORS setup.
+- **Frontend cannot reach the backend:** confirm the backend is running on port `3010`.
+
+## Author
 
 **Utsav Kumar**
 
 GitHub: https://github.com/ukutsavkumaruk-cpu
-
----
-
-⭐ If you find this project interesting, consider giving it a star!
