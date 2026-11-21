@@ -101,7 +101,7 @@ exports.postLogIn = async(req,res,next)=>{
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 15 * 60 * 1000
+    maxAge: 30 * 60 * 1000
   });
 
     res.status(201).json({
