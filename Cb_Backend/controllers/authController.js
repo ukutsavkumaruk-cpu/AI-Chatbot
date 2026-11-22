@@ -88,7 +88,7 @@ exports.postLogIn = async(req,res,next)=>{
     User.password
   );
     if (!isMatch) {
-      return res.status(401).json({
+        return res.status(401).json({
         message: "Invalid credentials"
       });
     }
@@ -96,12 +96,23 @@ exports.postLogIn = async(req,res,next)=>{
       {userId:User._id},
       process.env.JWT_SECRET,{expiresIn : "30m"}
     );
-
+    const refreshToken = jwt.sign(
+      {userId:User._id},
+      process.env.JWT_SECRET,{expiresIn : "7d"}
+    );
+    await user.updateOne({refreshToken:refreshToken})
+    await user.save()
     res.cookie("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 30 * 60 * 1000
+  });
+  res.cookie("Rtoken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
     res.status(201).json({
@@ -128,6 +139,7 @@ exports.checkAuth  = async(req,res,next)=>{
     });
     }
     const decoded = jwt.verify(token,process.env.JWT_SECRET)
+    
     const User = await user.findById(decoded.userId).select("-password");
     
     if (!User) {
