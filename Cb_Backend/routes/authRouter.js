@@ -1,8 +1,9 @@
 const express = require('express')
-const {postSignUp,postLogIn,checkAuth,postLogout } = require('../controllers/authController')
+const {postSignUp,postLogIn,checkAuth,postLogout,getNewAccessToken } = require('../controllers/authController')
 const authRouter = express.Router()
 
 authRouter.get('/check',checkAuth )
+authRouter.get('/refreshToken',getNewAccessToken)
 authRouter.post('/login',postLogIn)
 authRouter.post('/signUp',postSignUp)
 authRouter.post('/logout',postLogout)

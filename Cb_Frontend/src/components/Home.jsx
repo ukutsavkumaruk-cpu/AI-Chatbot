@@ -29,8 +29,23 @@ export default function Home() {
           method: "GET",
           credentials: "include",
         });
-        const data = await response.json();
+        let data = await response.json();
         console.log(data)
+
+        if (data.message === "ACCESS_TOKEN_EXPIRED" || data.message === "Token not present" ){
+          const result = await fetch("http://localhost:3010/api/auth/refreshToken",{
+            method: "GET",
+            credentials:"include"
+          })
+          const dta = await result.json();
+          if(dta.message == "New token Assigned"){
+            const response = await fetch("http://localhost:3010/api/auth/check",{
+                method: "GET",
+                credentials: "include",
+              });
+             data = await response.json();
+          }
+        }
 
         if(data.isLoggedIn){
           const Conversations = await getConversations();
