@@ -1,11 +1,12 @@
 # Chatie - AI Chatbot
 
-Chatie is a full-stack AI chat application built with React and Node.js. It uses Google's Gemini API for streaming responses, MongoDB for conversations and messages, and JWT authentication stored in an HttpOnly cookie.
+Chatie is a full-stack AI chatbot built with React, Node.js, Express, MongoDB, and the Google Gemini API. It provides JWT-based authentication, persistent conversations, and real-time AI responses streamed to the browser.
 
 ## Features
 
 - Streamed Gemini responses with server-sent events (SSE)
 - User signup, login, logout, and authentication checks
+- Access and refresh JWT authentication with HttpOnly cookies
 - Multiple saved conversations with persistent message history
 - Responsive chat sidebar and mobile layout
 - Redux Toolkit state for users, chats, and conversations
@@ -72,11 +73,22 @@ Create `Cb_Backend/.env`:
 ```env
 DB_URL=mongodb://127.0.0.1:27017/chatie
 JWT_SECRET=replace_with_a_long_random_secret
-GEMINI_API_KEY=your_gemini_api_key
+JWT_REFRESH_SECRET=replace_with_a_different_random_secret
+GEMINI_API_KEY=your_google_gemini_api_key
 NODE_ENV=development
 ```
 
-`GEMINI_API_KEY` is read by `Cb_Backend/services/geminiClient.js`. See `.env.example` only if one has been added to your local checkout.
+Environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `DB_URL` | MongoDB connection string |
+| `JWT_SECRET` | Signs access tokens |
+| `JWT_REFRESH_SECRET` | Signs refresh tokens |
+| `GEMINI_API_KEY` | Authenticates requests to the Google Gemini API |
+| `NODE_ENV` | Controls cookie security behavior |
+
+Do not commit `.env` or real API keys. Keep the access and refresh secrets different.
 
 ### 4. Start the application
 
@@ -99,9 +111,9 @@ npm run dev --prefix Cb_Frontend
 ## How It Works
 
 1. A user signs up or logs in.
-2. The backend validates credentials and returns a JWT in an HttpOnly cookie.
+2. The backend hashes or verifies the password and returns access and refresh JWTs in HttpOnly cookies.
 3. The frontend submits a message with the active conversation ID.
-4. The backend validates the JWT and creates or updates a conversation.
+4. The backend validates the access JWT and creates or updates a conversation owned by the user.
 5. Gemini streams response chunks over SSE.
 6. The frontend appends chunks to the active agent message in real time.
 7. The backend saves the completed user and agent messages in MongoDB.
@@ -118,6 +130,7 @@ All routes are served from `http://localhost:3010`.
 | `POST` | `/api/auth/login` | Log in and set the auth cookie |
 | `POST` | `/api/auth/logout` | Clear the auth cookie |
 | `GET` | `/api/auth/check` | Check the current authenticated user |
+| `GET` | `/api/auth/refreshToken` | Issue a new access token from the refresh cookie |
 | `GET` | `/api/conversations` | List the user's conversations |
 | `GET` | `/api/conversations/:conv_id` | Get messages for a conversation |
 | `GET` | `/api/chat/:conversationId` | Get persisted chat messages |
@@ -135,10 +148,11 @@ The chat endpoint accepts:
 ## Authentication and Security
 
 - Passwords are hashed with bcrypt.
-- JWT values expire after 30 minutes in the token payload.
-- Login cookies are HttpOnly and set with `SameSite=Lax`.
+- Access tokens expire after 30 minutes.
+- Refresh tokens expire after 7 days and are saved in the user document.
+- Authentication cookies are HttpOnly and use `SameSite=Lax`.
 - Cookies use the `Secure` flag in production.
-- Protected chat and conversation operations validate the user from the JWT.
+- Chat requests validate the access token before creating or updating a conversation.
 - CORS is currently restricted to `http://localhost:5173`.
 
 ## Build and Lint
