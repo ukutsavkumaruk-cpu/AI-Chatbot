@@ -31,7 +31,7 @@ exports.getNewAccessToken = async(req,res,next) =>{
     });
   }
   catch(error){
-      console.log("This is the Error :", error)
+      console.log("This is the error :", error)
       return res.status(401).json({
       isLoggedIn: false,
       message: "REFRESH_TOKEN_EXPIRED",
